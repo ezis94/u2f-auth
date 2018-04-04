@@ -1,0 +1,114 @@
+<% include partials/head %>
+
+  <body>
+    <div class="col-sm-8 col-sm-offset-2">
+      <div class="text-center">
+        <h1 class=" fa fa-user"> Profile</h1><br>
+        <span><strong>user id</strong>: <%= user._id ? user._id : '' %></span><br>
+        <span class="fa fa-sign-out"><a href="/"> Sign out</a></span>
+        <hr>
+        <div class="jumbotron">
+          <% if (user.local.email != null) { %>
+            <img src="https://avatars.io/gravatar/<%= user.local.email %>/140" class="img-circle"><br>
+            <strong>email</strong>: <%= user.local.email %><br>
+			<strong>name</strong>: <%= user.local.name %><br>
+
+			<form action="/addkey" method="post">
+          <div class="form-group">
+              
+		  <input type="button" value="Register a 2FA key" onClick="register()">
+		    <input type="hidden" class="form-control" name="pub" id="pub">
+           <input type="hidden" class="form-control" name="han"id="han">
+			<input type="hidden" class="form-control" name="usr"id="usr" value= "<%= user.local %> ">
+
+			
+          <div>
+            <input type="submit" class="form-control" value="Submit" id="sub" />
+          </div>
+        </form>
+          <% } %>
+
+          <% if (user.facebook.id != null) { %>
+            <h2 class="fa fa-facebook"> Facebook</h2><br>
+            <img src="https://avatars.io/gravatar/<%= user.facebook.email %>/140" class="img-circle"><br>
+            <strong>id</strong>: <%= user.facebook.id %><br>
+            <strong>email</strong>: <%= user.facebook.email %><br>
+            <strong>name</strong>: <%= user.facebook.name %>
+          <% } %>
+
+          <% if (user.twitter.id != null) { %>
+            <h2 class="fa fa-twitter"> Twitter</h2><br>
+            <img src="https://avatars.io/twitter/<%= user.twitter.username %>" class="img-circle"><br>
+            <strong>id</strong>: <%= user.twitter.id %><br>
+            <strong>token</strong>: <%= user.twitter.token %><br>
+            <strong>username</strong>: <%= user.twitter.username %><br>
+            <strong>displayName</strong>: <%= user.twitter.displayName %>
+          <% } %>
+
+          <% if (user.google.id != null) { %>
+            <h2 class="fa fa-google-plus"> Google</h2><br>
+            <img src="https://avatars.io/gravatar/<%= user.google.email %>/140" class="img-circle"><br>
+            <strong>id</strong>: <%= user.google.id %><br>
+            <strong>token</strong>: <%= user.google.token %><br>
+            <strong>email</strong>: <%= user.google.email %><br>
+            <strong>name</strong>: <%= user.google.name %>
+          <% } %>
+        </div>
+		<script>
+/* Get an authentication request from the server,
+ * sign it with the key, verify the results on the server
+ */	
+document.getElementById("sub").disabled = true;
+
+/* Get a registration request from the server, use it to register the key, send the results back
+ * to server and check if it was successful
+ */
+function register() {
+	ajaxGet("/api/register_request", function(authRequest) {
+	alert(authRequest);
+
+			var req = JSON.parse(authRequest);
+			alert("Press your key");
+			u2f.register(req.APP_ID,[req], [], function(res) {
+				ajaxPost("/api/register", res, function(res) {
+					res=JSON.parse(res);
+					if (JSON.stringify(res.stat) === "true") {
+						alert("Successfully registered that key. You can now view student data."+ res.usr);
+						document.getElementById("pub").value = JSON.stringify(res.usr.publicKey);
+						document.getElementById("han").value = JSON.stringify(res.usr.keyHandle);
+						document.getElementById("sub").disabled = false;
+						document.getElementById("usr").value = JSON.stringify(res.usr);
+
+
+					} else {
+						alert(res.usr);
+					}
+				});
+			});
+	});
+}
+/* Very basic ajax functions */
+function ajaxGet(url, cb) {
+	var xhr = new XMLHttpRequest();
+	xhr.open("GET", url);
+	xhr.onload = function() {
+			alert("url "+url+"  cb"+xhr.responseText);
+
+		cb(xhr.responseText);
+	};
+	xhr.send();
+}
+function ajaxPost(url, data, cb) {
+	var xhr = new XMLHttpRequest();
+	xhr.open("POST", url);
+	xhr.setRequestHeader("Content-type", "application/json");
+	xhr.onload = function() {
+		cb(xhr.responseText);
+	};
+	xhr.send(JSON.stringify(data));
+}
+</script>
+      </div>
+    </div>
+  </body>
+</html>
