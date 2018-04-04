@@ -20,9 +20,12 @@ module.exports = function(passport) {
   passport.use('local-signup', new LocalStrategy({
     usernameField: 'email',
     passwordField: 'password',
+	nameField: 'tname',
+	publickey: 'pub',
+	handle: 'han',
     passReqToCallback: true,
   },
-  function(req, email, password, done) {
+  function(req, email, password,tname,publickey,handle, done) {
     process.nextTick(function() {
       User.findOne({ 'local.email':  email }, function(err, user) {
         if (err)
@@ -33,6 +36,10 @@ module.exports = function(passport) {
           var newUser = new User();
           newUser.local.email = email;
           newUser.local.password = newUser.generateHash(password);
+		  newUser.local.name= tname;
+		  newUser.local.publickey.push(publickey);
+		  newUser.local.handle.push(handle);
+
           newUser.save(function(err) {
             if (err)
               throw err;
@@ -42,13 +49,43 @@ module.exports = function(passport) {
       });
     });
   }));
+  passport.use('local-add', new LocalStrategy({
+    usernameField: 'email',
+	passwordField: 'password',
+	nameField: 'tname',
+	publickey: 'pub',
+	handle: 'han',
+    passReqToCallback: true,
+  },
+  function(req, email, password,tname,publickey,handle, done) {
+    process.nextTick(function() {
+      User.findOne({ 'local.email':  email }, function(err, user) {
+		if (err)
+          return done(err);
+		if (!user)
+          return done(null, false, req.flash('loginMessage', 'No user found.'));
+		else {
+          console.log("OOOOOOOOOOO"+JSON.stringify("user.local"));
+		  user.local.publickey.push(publickey);
+		  user.local.handle.push(handle);
 
+          newUser.save(function(err) {
+            if (err)
+              throw err;
+            return done(null, newUser);
+          });
+        }
+      });
+    });
+  }));
   passport.use('local-login', new LocalStrategy({
     usernameField: 'email',
     passwordField: 'password',
+	publickey: 'pub',
+	handle: 'han',
     passReqToCallback: true,
   },
-  function(req, email, password, done) {
+  function(req, email, password,tname,publickey,handle, done) {
     User.findOne({ 'local.email':  email }, function(err, user) {
       if (err)
           return done(err);
@@ -56,6 +93,7 @@ module.exports = function(passport) {
           return done(null, false, req.flash('loginMessage', 'No user found.'));
       if (!user.validPassword(password))
           return done(null, false, req.flash('loginMessage', 'Oops! Wrong password.'));
+	  
       return done(null, user);
     });
   }));

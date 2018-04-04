@@ -19,3 +19,4 @@ Authenticate locally or through Facebook, Twitter or Google.
 * `node app`
 
 Head over to [http://localhost:3000](http://localhost:3000)
+"# u2f-auth" 

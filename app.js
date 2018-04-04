@@ -4,8 +4,13 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var u2f = require('u2f');
+var https = require('https');
+var fs = require('fs');
+var engines = require('consolidate');
 
-var port = process.env.PORT || 3000;
+
+var APP_ID = "https://localhost:4433";
 
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
@@ -21,6 +26,8 @@ var configDB = require('./config/database.js');
 mongoose.connect(configDB.url);
 
 var app = express();
+
+app.engine('html', engines.hogan);
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -66,6 +73,11 @@ app.use(function(err, req, res, next) {
   });
 });
 
-app.listen(port);
+var credentials = {
+  key: fs.readFileSync('insecure-key.pem'),
+  cert: fs.readFileSync('insecure-certificate.pem')
+};
+var httpsServer = https.createServer(credentials, app);
+httpsServer.listen(4433);
 
 module.exports = app;

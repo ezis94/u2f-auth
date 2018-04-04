@@ -1,0 +1,86 @@
+<% include partials/head %>
+
+  <body>
+    <div class="col-sm-8 col-sm-offset-2">
+      <div class="jumbotron text-center">
+        <h1><span class="fa fa-sign-in"></span> Login</h1>
+
+        <% if (message != null) { %>
+        	<div class="alert-danger"><%= message %></div>
+        <% } %>
+
+        <form action="/login" method="post">
+          <div class="form-group">
+          </div><%= user.local.email %>
+          <div class="form-group">
+          </div>
+		  <input type="button" value="verify u2f" onClick="authenticate()">
+		   <input type="hidden" class="form-control" name="pub" id="pub">
+           <input type="hidden" class="form-control" name="han"id="han">
+          <div>
+            <input type="submit" class="form-control" value="Submit"onClick="authenticate()" />
+          </div>
+        </form>
+				<script>
+/* Get an authentication request from the server,
+ * sign it with the key, verify the results on the server
+ */	
+
+function authenticate() {
+	ajaxGet("/api/sign_request", function(authRequest) {
+			alert("this is  I   "+authRequest);
+			var req = JSON.parse(authRequest);
+			alert("Press your key");
+			alert(JSON.stringify(req[0].appId+"    hello"+req[0].challenge));
+
+			//need to work here!!!!
+				u2f.sign(req[0].appId,req[0].challenge,req, function(res) {
+					alert(JSON.stringify(res));
+					ajaxPost("/api/authenticate", res, function(res) {
+						res = JSON.parse(res);
+						if (res.error) {
+							alert(res.error);
+							return;
+						} else {
+							alert(JSON.stringify("Success"));
+							window.location = "https://localhost:4433/profile";
+
+							//ajaxGet("/profile", function(authRequest) {});
+
+						}
+					});
+				});
+				
+	});
+}
+
+
+/* Very basic ajax functions */
+function ajaxGet(url, cb) {
+	var xhr = new XMLHttpRequest();
+	xhr.open("GET", url);
+	xhr.onload = function() {
+			alert("url "+url+"  cb"+xhr.responseText);
+
+		cb(xhr.responseText);
+	};
+	var usr="<%= user.local.email %>";
+	xhr.send(usr);
+}
+function ajaxPost(url, data, cb) {
+	var xhr = new XMLHttpRequest();
+	xhr.open("POST", url);
+	xhr.setRequestHeader("Content-type", "application/json");
+	xhr.onload = function() {
+		cb(xhr.responseText);
+	};
+	xhr.send(JSON.stringify(data));
+}
+</script>
+      </div>
+      <hr>
+      <span class="fa fa-sign-in"> Don't have an account?<a href="/signup"> Signup</a></span>
+      <p>Or go <a href="/">home</a>.</p>
+    </div>
+  </body>
+</html>
