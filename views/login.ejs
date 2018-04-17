@@ -23,76 +23,8 @@
             <input type="submit" class="form-control" value="Submit" />
           </div>
         </form>
-				<script>
-/* Get an authentication request from the server,
- * sign it with the key, verify the results on the server
- */	
 
-function authenticate() {
-	ajaxGet("/api/sign_request", function(authRequest) {
-		alert(authRequest);
 
-			var req = JSON.parse(authRequest);
-			alert("Press your key");
-			u2f.sign(req.APP_ID,req.challenge,[req], function(res) {
-				ajaxPost("/api/authenticate", res, function(res) {
-					res = JSON.parse(res);
-					if (res.error) {
-						alert(res.error);
-						return;
-					} else {
-						alert(JSON.stringify(res.secretData));
-					}
-				});
-			});
-	});
-}
-/* Get a registration request from the server, use it to register the key, send the results back
- * to server and check if it was successful
- */
-function register() {
-	ajaxGet("/api/register_request", function(authRequest) {
-	alert(authRequest);
-
-			var req = JSON.parse(authRequest);
-			alert("Press your key");
-			u2f.register(req.APP_ID,[req], [], function(res) {
-				ajaxPost("/api/register", res, function(res) {
-					res=JSON.parse(res);
-					if (JSON.stringify(res.stat) === "true") {
-						alert("Successfully registered that key. You can now view student data."+ res.usr);
-						document.getElementById("pub").value = JSON.stringify(res.usr.publicKey);
-						document.getElementById("han").value = JSON.stringify(res.usr.keyHandle);
-					} else {
-						alert(res.usr);
-					}
-				});
-			});
-	});
-}
-/* Very basic ajax functions */
-function ajaxGet(url, cb) {
-	var xhr = new XMLHttpRequest();
-	xhr.open("GET", url);
-	//xhr.setRequestHeader("username", document.getElementById("email").value);
-	
-	xhr.onload = function() {
-			alert("url "+url+"  cb"+xhr.responseText);
-
-		cb(xhr.responseText);
-	};
-	xhr.send();
-}
-function ajaxPost(url, data, cb) {
-	var xhr = new XMLHttpRequest();
-	xhr.open("POST", url);
-	xhr.setRequestHeader("Content-type", "application/json");
-	xhr.onload = function() {
-		cb(xhr.responseText);
-	};
-	xhr.send(JSON.stringify(data));
-}
-</script>
       </div>
       <hr>
       <span class="fa fa-sign-in"> Don't have an account?<a href="/signup"> Signup</a></span>

@@ -25,6 +25,7 @@
  */	
 
 function authenticate() {
+
 	ajaxGet("/api/sign_request", function(authRequest) {
 			alert("this is  I   "+authRequest);
 			var req = JSON.parse(authRequest);
