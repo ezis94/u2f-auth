@@ -2,12 +2,33 @@
 <html>
   <head>
     <title>Express Authentication</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"> <!-- load bootstrap css -->
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css"> <!-- load fontawesome -->
 	<script src="https://demo.yubico.com/js/u2f-api.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
     <style>
       body { padding-top: 50px; }
       img { width: 140px; height: 140px; }
       .fa-sign-out { float: right; }
+      #map {
+        height: 550px;
+        width: 100%;
+      }
+      #pac-input {
+        background-color: #fff;
+        font-family: Roboto;
+        font-size: 15px;
+        font-weight: 300;
+        margin-left: 12px;
+        padding: 0 11px 0 13px;
+        text-overflow: ellipsis;
+        width: 400px;
+      }
+      #temperature_control{ width: 30%;     padding-left: 100px;float:left;}
+      #ventilation_control{ width: 30%;     padding-right: 100px;float:right;}
+
     </style>
   </head>

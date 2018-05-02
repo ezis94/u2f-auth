@@ -11,7 +11,7 @@
 
         <form action="/login" method="post">
           <div class="form-group">
-          </div><%= user.local.email %>
+          </div><%= user %>
           <div class="form-group">
           </div>
 		  <input type="button" value="verify u2f" onClick="authenticate()">
@@ -63,7 +63,7 @@ function ajaxGet(url, cb) {
 
 		cb(xhr.responseText);
 	};
-	var usr="<%= user.local.email %>";
+	var usr="<%= user %>";
 	xhr.send(usr);
 }
 function ajaxPost(url, data, cb) {

@@ -8,6 +8,10 @@ var fs = require("fs");
 var Users = {};
 var User1 = require("../models/user");
 var Car = require("../models/user_car");
+var googleMapsClient = require('@google/maps').createClient({
+    clientId: '897949743059-29ad8f8jb800tcr6snvp809bj8odglsu.apps.googleusercontent.com',
+    clientSecret: 'yjMA6z7XJPDF3gseGEMAeTyT',
+});
 var tempo_handle;
 var User;
 var Sessions = {};
@@ -21,11 +25,12 @@ router.get("/", function(req, res, next) {
 router.get("/login", function(req, res, next) {
   res.render("login.ejs", { message: req.flash("loginMessage") });
 });
+
 router.get("/loginu2f", function(req, res, next) {
   console.log(req);
   res.render("loginu2f.ejs", {
     message: req.flash("loginMessage"),
-    user: req.user
+    user: req.user.local.email
   });
 });
 router.get("/loginbmw", function(req, res, next) {
@@ -47,7 +52,10 @@ router.get("/profile", isLoggedIn, function(req, res) {
   console.log(req.user);
   res.render("profile.ejs", { user: req.user });
 });
-
+router.get("/profile_car", isLoggedIn, function(req, res) {
+    console.log(req.user);
+    res.render("profile_car.ejs", { user: req.user });
+});
 router.get("/logout", function(req, res) {
   req.logout();
   res.redirect("/");
@@ -89,16 +97,43 @@ router.post(
   })
 );
 router.post(
-  "/loginu2f",
-  passport.authenticate("local-login", {
-    successRedirect: "/profile",
-    failureRedirect: "/loginu2f",
-    failureFlash: true
-  })
+    "/login",
+    passport.authenticate("local-login", {
+        successRedirect: "/loginu2f",
+        failureRedirect: "/login",
+        failureFlash: true
+    })
 );
+router.post(
+  "/temp", function(req, res) {
+        console.log(JSON.stringify(req.user));
+        console.log("dsadfasfdfafadf" + JSON.stringify(req.body));
+
+        process.nextTick(function() {
+            User1.findOne({ "local.email": req.user.local.email }, function(err, user) {
+                if (err) return done(err);
+                if (!user)
+                    return done(null, false, req.flash("loginMessage", "No user found."));
+                else {
+                    console.log("OOOOOOOOOOO" + JSON.stringify("user.local"));
+                    user.car.heating.right=req.body.temp2;
+                    user.car.heating.left=req.body.temp1;
+                    user.car.ventilation.left=req.body.temp3;
+                    user.car.ventilation.right=req.body.temp4;
+
+
+                    console.log(JSON.stringify(user));
+
+                    user.save(function(err) {
+                        if (err) throw err;
+                        res.send(JSON.stringify({ stat: true}));                    });
+                }
+            });
+        });
+    });
 router.get(
   "/auth/facebook",
-  passport.authenticate("facebook", { scope: "email" })
+  passport.authenticate("facebook", { scope:[ "email","user_birthday","user_location","user_hometown","user_likes","user_tagged_places"] })
 );
 
 router.get(
@@ -177,36 +212,28 @@ router.post("/addkey", function(req, res) {
     });
   });
 });
-/*router.post('/authorize', function(req, res) {
-    console.log(JSON.stringify(req.user ));
-    console.log("dsadfasfdfafadf"+JSON.stringify(req.body ));
-    console.log(JSON.stringify(req.body.secretData));
-    var sc=req.body.secretData;
-    process.nextTick(function() {
-        User1.findOne({ 'local.handle':  req.body.secretData }, function(err, user2) {
+// google ---------------------------------
 
-            if (err)
-                return done(err);
-            if (!user2)
-                return done(null, false, req.flash('loginMessage', 'No user found.'));
-            else {
-                console.log("OOOOOOOOOOO"+JSON.stringify(req.body));
-                console.log(JSON.stringify( req.user));
-                req.user=user2;
-                console.log(JSON.stringify(user2 ));
-                console.log(JSON.stringify( req.user));
+// send to google to do the authentication
+router.get('/connect/google', passport.authorize('google', { scope : ['profile', 'email', 'gmail.readonly'] }));
 
-
-                res.send({ user: user2 });
-
-            }
-        });
+// the callback after google has authorized the user
+router.get('/connect/google/callback',
+    passport.authorize('google', {
+        successRedirect : '/profile',
+        failureRedirect : '/'
+    }));
+router.get('/unlink/google', isLoggedIn, function(req, res) {
+    var user          = req.user;
+    user.google.token = undefined;
+    user.save(function(err) {
+        res.redirect('/profile');
     });
-});*/
+});
 router.post(
   "/authorize",
   passport.authenticate("local-auth", {
-    successRedirect: "/profile",
+    successRedirect: "/profile_car",
     failureRedirect: "/loginu2fcar",
     failureFlash: true
   })
@@ -268,6 +295,54 @@ router.post("/api/authenticate", function(req, res) {
     res.send({ error: checkRes.errorMessage });
   }
 });
+router.post(
+    "/saveloc", function(req, res) {
+
+
+        process.nextTick(function() {
+            User1.findOne({ "local.email": req.user.local.email }, function(err, user) {
+                if (err) return done(err);
+                if (!user)
+                    return done(null, false, req.flash("loginMessage", "No user found."));
+                else {
+
+                    console.log(req.body.locat);
+                    var index=user.map.location.indexOf(req.body.locat)
+                    if (index > -1) {
+
+                         var nr = Number(user.map.density[index])+1;
+                        var t=user.map.density;
+                         t[index]=JSON.stringify(nr);
+                        user.map.density[index]=JSON.stringify(nr);
+                        console.log(JSON.stringify(user.map.density[index]));
+                        User1.update({"local.email": req.user.local.email}, {
+                            "map.density": t,
+
+                        }, function(err, numberAffected, rawResponse) {
+                            console.log(JSON.stringify(user));
+
+                            res.send(JSON.stringify({ stat: true}));
+                        });
+
+                    } else {
+                        user.map.location =  user.map.location.concat([req.body.locat]);
+                        user.map.density =  user.map.density.concat(["1"]);
+                        user.save(function(err) {
+                            if (err) throw err;
+                            console.log(JSON.stringify(user));
+
+                            res.send(JSON.stringify({ stat: true}));                    });
+                    }
+
+
+
+
+
+
+                }
+            });
+        });
+    });
 module.exports = router;
 
 function isLoggedIn(req, res, next) {

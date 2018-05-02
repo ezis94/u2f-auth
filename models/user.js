@@ -17,12 +17,58 @@ var userSchema = mongoose.Schema({
       }
     ]
   },
+    car:{
+    name: String,
+    heating:
+        {
+            left: String,
+            right:String
+        },
+   ventilation:
+        {
+            left: String,
+            right:String
+        }
+    },
+    map: {
+      location: [
+          {
+              type: String
+
+          }
+        ],
+       density:
+           [
+               {
+                   type:String
+               }
+           ]
+    },
+
   facebook: {
     id: String,
     token: String,
     email: String,
     name: String,
-    username: String
+    username: String,
+      location: String,
+      birthday: String,
+      hometown: String,
+      likes: [
+          {
+              type: String
+          }
+      ],
+      taggedlat:[
+          {
+              type: String
+          }
+      ],
+      taggedlong:[
+          {
+              type: String
+          }
+      ]
   },
   twitter: {
     id: String,

@@ -1,89 +1,311 @@
 <% include partials/head %>
 
-  <body>
-    <div class="col-sm-8 col-sm-offset-2">
-      <div class="text-center">
-        <h1 class=" fa fa-user"> Profile</h1><br>
-        <span><strong>user id</strong>: <%= user._id ? user._id : '' %></span><br>
-        <span class="fa fa-sign-out"><a href="/"> Sign out</a></span>
-        <hr>
-        <div class="jumbotron">
-          <% if (user.local.email != null) { %>
-            <img src="https://avatars.io/gravatar/<%= user.local.email %>/140" class="img-circle"><br>
-            <strong>email</strong>: <%= user.local.email %><br>
-			<strong>name</strong>: <%= user.local.name %><br>
+<body>
 
-			<form action="/addkey" method="post">
-          <div class="form-group">
-              
-		  <input type="button" value="Register a 2FA key" onClick="register()">
-		    <input type="hidden" class="form-control" name="pub" id="pub">
-           <input type="hidden" class="form-control" name="han"id="han">
-			<input type="hidden" class="form-control" name="usr"id="usr" value= "<%= user.local %> ">
 
-			
-          <div>
-            <input type="submit" class="form-control" value="Submit" id="sub" />
-          </div>
-        </form>
-          <% } %>
-
+<nav class="navbar navbar-inverse">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand" >Project 403</a>
         </div>
-		<script>
-/* Get an authentication request from the server,
- * sign it with the key, verify the results on the server
- */	
-document.getElementById("sub").disabled = true;
+        <ul class="nav navbar-nav">
+            <li class="active"><a data-toggle="tab" href="#home">Home</a></li>
 
-/* Get a registration request from the server, use it to register the key, send the results back
- * to server and check if it was successful
- */
-function register() {
-	ajaxGet("/api/register_request", function(authRequest) {
-	alert(authRequest);
+            <li><a data-toggle="tab" href="#venttemp">Temperature/ventilation</a></li>
+            <li><a data-toggle="tab" href="#gmaps">Google maps</a></li>
 
-			var req = JSON.parse(authRequest);
-			alert("Press your key");
-			u2f.register(req.APP_ID,[req], [], function(res) {
-				ajaxPost("/api/register", res, function(res) {
-					res=JSON.parse(res);
-					if (JSON.stringify(res.stat) === "true") {
-						alert("Successfully registered that key. You can now view student data."+ res.usr);
-						document.getElementById("pub").value = JSON.stringify(res.usr.publicKey);
-						document.getElementById("han").value = JSON.stringify(res.usr.keyHandle);
-						document.getElementById("sub").disabled = false;
-						document.getElementById("usr").value = JSON.stringify(res.usr);
-
-
-					} else {
-						alert(res.usr);
-					}
-				});
-			});
-	});
-}
-/* Very basic ajax functions */
-function ajaxGet(url, cb) {
-	var xhr = new XMLHttpRequest();
-	xhr.open("GET", url);
-	xhr.onload = function() {
-			alert("url "+url+"  cb"+xhr.responseText);
-
-		cb(xhr.responseText);
-	};
-	xhr.send();
-}
-function ajaxPost(url, data, cb) {
-	var xhr = new XMLHttpRequest();
-	xhr.open("POST", url);
-	xhr.setRequestHeader("Content-type", "application/json");
-	xhr.onload = function() {
-		cb(xhr.responseText);
-	};
-	xhr.send(JSON.stringify(data));
-}
-</script>
-      </div>
+        </ul>
     </div>
-  </body>
+</nav>
+<div class="tab-content">
+    <div id="home" class="tab-pane fade in active">
+
+        <div class="col-sm-8 col-sm-offset-2">
+            <div class="text-center">
+                <h1 class=" fa fa-user"> Profile</h1><br>
+                <span><strong>user id</strong>: <%= user._id ? user._id : '' %></span><br>
+                <span class="fa fa-sign-out"><a href="/"> Sign out</a></span>
+                <hr>
+
+                <div class="jumbotron">
+                    <% if (user.local.email != null) { %>
+                    <img src="https://avatars.io/gravatar/<%= user.local.email %>/140" class="img-circle"><br>
+                    <strong>email</strong>: <%= user.local.email %><br>
+                    <strong>name</strong>: <%= user.local.name %><br>
+
+                </div>
+                <% } %>
+
+            </div> </div> </div>
+    <div id="venttemp" class="tab-pane fade">
+        <h3>Temperature/ventilation</h3>
+        <form action="/temp" method="post">
+            <input type="hidden" class="form-control" name="usr"id="usr" value= "<%= user %> ">
+
+            <div id="temperature_control" >
+                <img src="https://cdn2.iconfinder.com/data/icons/game-center-mixed-icons/512/temperature.png" style="width: 100%; height: auto;">
+                <div style="width: 100%;float: left;">
+
+
+                    <h3 style="width: 50%;float: left;">Left</h3>
+                    <h3 style="width: 50%;float: left;">Right</h3>
+                </div>
+
+                <div  class="input-group">
+                  <span class="input-group-btn">
+              <button type="button" class="btn btn-default btn-number"  data-type="minus" data-field="temp1">
+                  <span class="glyphicon glyphicon-minus"></span>
+              </button>
+          </span>
+                    <input type="text" name="temp1" class="form-control input-number" value="<%= user.car.heating.left%>" min="10" max="30">
+                    <span class="input-group-btn">
+              <button type="submit" class="btn btn-default btn-number" data-type="plus" data-field="temp1">
+                  <span class="glyphicon glyphicon-plus"></span>
+              </button>
+          </span>
+                    <span class="input-group-btn">
+              <button type="submit" class="btn btn-default btn-number"  data-type="minus" data-field="temp2">
+                  <span class="glyphicon glyphicon-minus"></span>
+              </button>
+          </span>
+                    <input type="text" name="temp2" class="form-control input-number" value="<%= user.car.heating.right%>" min="10" max="30">
+                    <span class="input-group-btn">
+              <button type="button" class="btn btn-default btn-number" data-type="plus" data-field="temp2">
+                  <span class="glyphicon glyphicon-plus"></span>
+              </button>
+          </span>
+                </div>
+            </div>
+
+            <div id="ventilation_control">
+                <img src="https://cdn1.iconfinder.com/data/icons/health-safety-and-environment/150/Ventilation-512.png" style="width: 100%; height: auto;">
+                <div style="width: 100%;float: left;">
+
+
+                    <h3 style="width: 50%;float: left;">Left</h3>
+                    <h3 style="width: 50%;float: left;">Right</h3>
+                </div>
+
+                <div  class="input-group">
+                  <span class="input-group-btn">
+              <button type="button" class="btn btn-default btn-number"  data-type="minus" data-field="temp3">
+                  <span class="glyphicon glyphicon-minus"></span>
+              </button>
+          </span>
+                    <input type="text" name="temp3" class="form-control input-number" value="<%= user.car.ventilation.left%>" min="0" max="5">
+                    <span class="input-group-btn">
+              <button type="button" class="btn btn-default btn-number" data-type="plus" data-field="temp3">
+                  <span class="glyphicon glyphicon-plus"></span>
+              </button>
+          </span>
+                    <span class="input-group-btn">
+              <button type="button" class="btn btn-default btn-number"  data-type="minus" data-field="temp4">
+                  <span class="glyphicon glyphicon-minus"></span>
+              </button>
+          </span>
+                    <input type="text" name="temp4" class="form-control input-number" value="<%= user.car.ventilation.right%>" min="0" max="5">
+                    <span class="input-group-btn">
+              <button type="button" class="btn btn-default btn-number" data-type="plus" data-field="temp4">
+                  <span class="glyphicon glyphicon-plus"></span>
+              </button>
+          </span>
+                </div>
+            </div><br><br>
+            <p style="text-align: center;">
+
+                <input type="submit"  value="Submit changes" style="width:50%;">
+            </p>
+        </form>
+    </div>
+    <div id="gmaps" class="tab-pane fade">
+        <!-- GOOGLE INFORMATION -->
+        <div class="col-sm-6">
+            <div class="well">
+                <h3 class="text-danger"><span class="fa fa-google-plus"></span> Google+</h3>
+
+                <% if (user.google.token) { %>
+                <p>
+                    <strong>id</strong>: <%= user.google.id %><br>
+                    <strong>token</strong>: <%= user.google.token %><br>
+                    <strong>email</strong>: <%= user.google.email %><br>
+                    <strong>name</strong>: <%= user.google.name %>
+                </p>
+
+                <a href="/unlink/google" class="btn btn-danger">Unlink</a>
+                <% } else { %>
+                <a href="/connect/google" class="btn btn-danger">Connect Google</a>
+                <% } %>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<% if (user.facebook.email != null) { %>
+
+<script>
+    var tagg=[];
+    var map;
+    var loc;
+    var lat;
+    function initiMap() {
+        var uluru = {lat:  loc, lng: lat};
+        map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 4,
+            center: uluru
+        });
+        var marker = new google.maps.Marker({
+            position: uluru,
+            map: map
+        });
+    }
+    <%for(i=0;i< user.facebook.taggedlat.length ;i++) {%>
+    tagg['<%=i%>']={lat:parseFloat('<%=user.facebook.taggedlat[i]%>'), lng:parseFloat('<%=user.facebook.taggedlong[i]%>')};
+    <%}%>
+    function addmarker(latilongi) {
+        for(k in latilongi){
+            //   var latlng = new google.maps.LatLng(latilongi.lat, latilongi.lng);
+            alert(JSON.stringify(latilongi[k]));
+            var marker = new google.maps.Marker({
+                position: latilongi[k],
+                title: 'new marker '+k,
+                map: map
+            });
+            map.setCenter(marker.getPosition());
+        }
+    }
+
+    $('#btnaddmarker').on('click', function() {
+        addmarker(tagg);
+    })
+</script>
+<% } %>
+
+<script>
+    /* Get an authenticat11ion request from the server,
+     * sign it with the key, verify the results on the server
+     */
+    if (document.getElementById("sub"))
+        document.getElementById("sub").disabled = true;
+
+    /* Get a registration request from the server, use it to register the key, send the results back
+     * to server and check if it was successful
+     */
+    function register() {
+        ajaxGet("/api/register_request", function(authRequest) {
+            alert(authRequest);
+
+            var req = JSON.parse(authRequest);
+            alert("Press your key");
+            u2f.register(req.APP_ID,[req], [], function(res) {
+                ajaxPost("/api/register", res, function(res) {
+                    res=JSON.parse(res);
+                    if (JSON.stringify(res.stat) === "true") {
+                        alert("Successfully registered that key. You can now view student data."+ res.usr);
+                        document.getElementById("pub").value = JSON.stringify(res.usr.publicKey);
+                        document.getElementById("han").value = JSON.stringify(res.usr.keyHandle);
+                        document.getElementById("sub").disabled = false;
+                        document.getElementById("usr").value = JSON.stringify(res.usr);
+
+
+                    } else {
+                        alert(res.usr);
+                    }
+                });
+            });
+        });
+    }
+    /* Very basic ajax functions */
+    function ajaxGet(url, cb) {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url);
+        xhr.onload = function() {
+            alert("url "+url+"  cb"+xhr.responseText);
+
+            cb(xhr.responseText);
+        };
+        xhr.send();
+    }
+    function ajaxPost(url, data, cb) {
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", url);
+        xhr.setRequestHeader("Content-type", "application/json");
+        xhr.onload = function() {
+            cb(xhr.responseText);
+        };
+        xhr.send(JSON.stringify(data));
+    }
+    $('.btn-number').click(function(e){
+        e.preventDefault();
+
+        fieldName = $(this).attr('data-field');
+        type      = $(this).attr('data-type');
+        var input = $("input[name='"+fieldName+"']");
+        var currentVal = parseInt(input.val());
+        if (!isNaN(currentVal)) {
+            if(type == 'minus') {
+
+                if(currentVal > input.attr('min')) {
+                    input.val(currentVal - 1).change();
+                }
+                if(parseInt(input.val()) == input.attr('min')) {
+                    $(this).attr('disabled', true);
+                }
+
+            } else if(type == 'plus') {
+
+                if(currentVal < input.attr('max')) {
+                    input.val(currentVal + 1).change();
+                }
+                if(parseInt(input.val()) == input.attr('max')) {
+                    $(this).attr('disabled', true);
+                }
+
+            }
+        } else {
+            input.val(0);
+        }
+    });
+
+    $('.input-number').change(function() {
+
+        minValue =  parseInt($(this).attr('min'));
+        maxValue =  parseInt($(this).attr('max'));
+        valueCurrent = parseInt($(this).val());
+
+        name = $(this).attr('name');
+        if(valueCurrent >= minValue) {
+            $(".btn-number[data-type='minus'][data-field='"+name+"']").removeAttr('disabled')
+        } else {
+            alert('Sorry, the minimum value was reached');
+            $(this).val($(this).data('oldValue'));
+        }
+        if(valueCurrent <= maxValue) {
+            $(".btn-number[data-type='plus'][data-field='"+name+"']").removeAttr('disabled')
+        } else {
+            alert('Sorry, the maximum value was reached');
+            $(this).val($(this).data('oldValue'));
+        }
+
+
+    });
+
+</script>
+</div>
+</div>          <% if (user.facebook.email != null) { %>
+
+<script  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAMtuSvmUtUbXztOlGdytQ6_D_L9uOtWk4&sensor=false"></script>
+<script>var geocoder =  new google.maps.Geocoder();
+    geocoder.geocode( { 'address': '<%=user.facebook.hometown %>'}, function(results, status) {
+
+        if (status == google.maps.GeocoderStatus.OK) {
+            loc=results[0].geometry.location.lat();
+            lat=results[0].geometry.location.lng();
+        } else {
+            alert("Something got wrong " + status);
+        }
+    });</script>          <% } %>
+
+</body>
 </html>
