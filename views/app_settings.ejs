@@ -1,0 +1,85 @@
+<% include partials/head %>
+
+  <body>
+
+    <h3>HELOO <%=user.local.email%></h3>
+      <a href="/profile">Back</a>
+      <h3>Google map?</h3>
+      <label class="switch">
+        <input id="g_map"type="checkbox" onchange="changeMap(this.checked)">
+        <span class="slider round"></span>
+      </label>
+      <script>function changeMap(stat){
+              var res={};
+
+              res.mapon=stat;
+              ajaxPost("/map_status", res, function(res) {
+                  res=JSON.parse(res);
+
+                  if (res.stat!=true) alert("fail");
+
+
+              });
+
+
+
+          }
+          function ajaxPost(url, data, cb) {
+              var xhr = new XMLHttpRequest();
+              xhr.open("POST", url);
+              xhr.setRequestHeader("Content-type", "application/json");
+              xhr.onload = function() {
+                  cb(xhr.responseText);
+              };
+              xhr.send(JSON.stringify(data));
+          }</script>
+    <% if (user.map.enabled=="true") {%>
+    <script>
+        document.getElementById("g_map").checked=true;
+    </script>
+
+    <%}%>
+    <h3>Spotify?</h3>
+    <label class="switch">
+      <input id="spot"type="checkbox" onchange="changeSpotify(this.checked)">
+      <span class="slider round"></span>
+    </label>
+    <script>
+        function changeSpotify(stat){
+            var res={};
+            res.spoton=stat;
+            ajaxPost("/spotify_status", res, function(res) {
+                res=JSON.parse(res);
+                if (res.stat!=true) alert("fail");
+            });
+        }
+    </script>
+    <% if (user.spotify.enabled=="true") {%>
+    <script>
+        document.getElementById("spot").checked=true;
+    </script>
+
+    <%}%>
+    <h3>Calendar?</h3>
+    <label class="switch">
+      <input id="calen"type="checkbox" onchange="changeCalendar(this.checked)">
+      <span class="slider round"></span>
+    </label>
+    <script>
+        function changeCalendar(stat){
+            var res={};
+            res.calend=stat;
+            ajaxPost("/calendar_status", res, function(res) {
+                res=JSON.parse(res);
+                if (res.stat!=true) alert("fail");
+            });
+        }
+    </script>
+    <% if (user.google.enabled=="true") {%>
+    <script>
+        document.getElementById("calen").checked=true;
+    </script>
+
+    <%}%>
+  </body>
+</html>

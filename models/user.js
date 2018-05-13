@@ -3,6 +3,7 @@ var bcrypt = require("bcrypt-nodejs");
 
 var userSchema = mongoose.Schema({
   local: {
+    ROLE:String,
     name: String,
     email: String,
     password: String,
@@ -17,20 +18,22 @@ var userSchema = mongoose.Schema({
       }
     ]
   },
+
     car:{
-    name: String,
-    heating:
+        name: String,
+        heating:
         {
             left: String,
             right:String
         },
-   ventilation:
+        ventilation:
         {
             left: String,
             right:String
         }
     },
     map: {
+      enabled: String,
       location: [
           {
               type: String
@@ -43,6 +46,13 @@ var userSchema = mongoose.Schema({
                    type:String
                }
            ]
+    },
+    spotify:{
+        enabled:String,
+        spotifyId: String,
+        refresh: String,
+        access: String,
+        expires: String
     },
 
   facebook: {
@@ -77,10 +87,15 @@ var userSchema = mongoose.Schema({
     username: String
   },
   google: {
-    id: String,
+      enabled:String,
+
+      id: String,
     token: String,
     email: String,
-    name: String
+    name: String,
+      refresh: String,
+      expires: String
+
   }
 });
 

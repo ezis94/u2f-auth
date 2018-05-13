@@ -12,7 +12,16 @@
               <li class="active"><a data-toggle="tab" href="#home">Home</a></li>
 
               <li><a data-toggle="tab" href="#venttemp">Temperature/ventilation</a></li>
-              <li><a data-toggle="tab" href="#gmaps" onclick="getLocation()">Google maps</a></li>
+              <% if (user.map.enabled=="true") {%>
+              <li><a data-toggle="tab" href="#gmaps">Google maps</a></li>
+              <%}%>
+              <% if (user.spotify.enabled=="true") {%>
+              <li><a data-toggle="tab" href="#spotify">Spotify</a></li>
+              <%}%>
+              <% if (user.google.enabled=="true") {%>
+
+              <li><a data-toggle="tab" href="#gcalendar">Calendar</a></li>
+              <%}%>
 
           </ul>
       </div>
@@ -29,7 +38,7 @@
 
                   <div class="jumbotron">
                       <% if (user.local.email != null) { %>
-                      <img src="https://avatars.io/gravatar/<%= user.local.email %>/140" class="img-circle"><br>
+                      <img src="https://avatars.io/gravatar/<%= user.local.email %>" class="img-circle"><br>
                       <strong>email</strong>: <%= user.local.email %><br>
                       <strong>name</strong>: <%= user.local.name %><br>
 
@@ -113,7 +122,10 @@
               </div>
 
       </div>
+      <% if (user.map.enabled=="true") {%>
+
       <div id="gmaps" class="tab-pane fade">
+
           <!-- GOOGLE INFORMATION -->
           <input id="pac-input" class="controls" type="text" placeholder="Search Box">
           <p>Or use one of 10 previous! or Find a new place!</p>
@@ -126,8 +138,7 @@
           </select>
           <div id="map"></div>
 
-      </div>
-      </div>
+
 
 
 
@@ -181,11 +192,13 @@
              address2=place.name;
               var res={};
               res.locat=address2;
-                alert(address2);
+              //  alert(address2);
               ajaxPost("/saveloc", res, function(res) {
                   res=JSON.parse(res);
                   if (JSON.stringify(res.stat) === "true") {
-                      alert("changed");
+                    //  alert("changed");
+
+                      $( "#end" ).append( '<option value=' +address2+'>'+address2+'</option>' );
 
 
 
@@ -201,7 +214,22 @@
       directionsDisplay.setMap(map);
 
       var onChangeHandler = function() {
-          address2=document.getElementById('end').value
+          address2=document.getElementById('end').value;
+          var res={};
+          res.locat=address2;
+          ajaxPost("/saveloc", res, function(res) {
+              res=JSON.parse(res);
+              if (JSON.stringify(res.stat) === "true") {
+                //  alert("changed");
+
+                  $( "#end" ).append( '<option value=' +address2+'>'+address2+'</option>' );
+
+
+
+              } else {
+                  alert(res.usr);
+              }
+          });
           calculateAndDisplayRoute(directionsService, directionsDisplay);
       };
       document.getElementById('end').addEventListener('change', onChangeHandler);
@@ -246,7 +274,232 @@
           }
       });
   }
+</script>
 
+
+      </div>
+      <%}%>
+      <% if (user.spotify.enabled=="true") {%>
+
+      <div id="spotify" class="tab-pane fade">
+          <% if (user.spotify.enabled=="true") {%>
+          <div id="spotify_list"></div><br><br>
+          <button id="prev_spotify">Previous track</button>
+          <button id="toggle_spotify">Start/pause</button>
+          <button id="next_spotify">nextt track</button>
+          <script src="https://sdk.scdn.co/spotify-player.js"></script>
+          <script>
+
+              window.onSpotifyWebPlaybackSDKReady = () => {
+                  const token = '<%=user.spotify.access%>';
+
+                  const player = new Spotify.Player({
+                      name: 'Web Playback SDK Quick Start Player',
+                      getOAuthToken: cb => { cb(token); }
+              });
+
+
+
+                  // Error handling
+                  player.addListener('initialization_error', ({ message }) => { console.error(message); });
+                  player.addListener('authentication_error', ({ message }) => { console.error(message); });
+                  player.addListener('account_error', ({ message }) => { console.error(message); });
+                  player.addListener('playback_error', ({ message }) => { console.error(message); });
+
+                  // Playback status updates
+                  player.addListener('player_state_changed', state => { console.log(state); player.getVolume().then(volume => {
+                      let volume_percentage = volume * 50;
+                  console.log(`The volume of the player is ${volume_percentage}%`);
+
+              });});
+
+                  // Ready
+                  player.addListener('ready', ({ device_id }) => {
+                      console.log('Ready with Device ID', device_id);
+                      $.ajax({
+                      url: "https://api.spotify.com/v1/me/player",
+
+                      type: "PUT",
+                      contentType: "application/json",
+
+                      headers:{
+                          'Accept': 'application/json',
+                          'Content-Type': 'application/json',
+                          'Authorization': 'Bearer <%=user.spotify.access%>'
+                      },
+
+                      data:'{"device_ids": ["'+device_id+'"]}',
+                      success: function (data) {
+                          player.pause().then(() => {
+                              console.log('Paused!');
+                      });
+                      }
+
+                  });
+                  $.ajax({
+                      url: "https://api.spotify.com/v1/me/playlists",
+
+                      type: "GET",
+                      contentType: "application/json",
+
+                      headers:{
+                          'Accept': 'application/json',
+                          'Content-Type': 'application/json',
+                          'Authorization': 'Bearer <%=user.spotify.access%>'
+                      },
+
+                      success: function (data) {
+
+                          console.log(JSON.stringify(data.items[0].name));
+                          for(i in data.items){
+
+                              $( "#spotify_list" ).append( '<button  class="lists" value="' +data.items[i].uri+'" >'+data.items[i].name+'</button>' );
+
+
+                          }
+                      }
+
+                  });
+                  $('#spotify_list').on('click', '.lists', function(){
+                      var uri=this.value;
+                      $.ajax({
+                          url: "https://api.spotify.com/v1/me/player/play?device_id="+device_id,
+
+                          type: "PUT",
+                          contentType: "application/json",
+
+                          headers:{
+                              'Accept': 'application/json',
+                              'Content-Type': 'application/json',
+                              'Authorization': 'Bearer <%=user.spotify.access%>'
+                          },
+
+                          data:'{"context_uri": "'+uri+'"}',
+                          success: function (data) {
+                          }
+
+                      });
+                  });
+              });
+                  // Not Ready
+                  player.addListener('not_ready', ({ device_id }) => {
+                      console.log('Device ID has gone offline', device_id);
+              });
+                  var slider = document.getElementById("myRange");
+                  var output = document.getElementById("demo");
+                  output.innerHTML = slider.value;
+
+                  slider.oninput = function() {
+
+                      player.setVolume(this.value*0.01).then(() => {
+                          console.log('Volume updated!');
+                  });
+                      output.innerHTML = this.value;
+                  }
+                  $("#toggle_spotify").click(function(){
+                      player.togglePlay().then(() => {
+                          console.log('Toggled playback!');
+                  });                  });
+                  $("#next_spotify").click(function(){
+                      player.nextTrack().then(() => {
+                          console.log('Skipped to next track!');
+                      });
+                  });
+                  $("#prev_spotify").click(function(){
+                      player.previousTrack().then(() => {
+                          console.log('Set to previous track!');
+                       });
+                  });
+                  $("#prev_spotify").click(function(){
+                      player.previousTrack().then(() => {
+                          console.log('Set to previous track!');
+                        });
+                  });
+
+                  // Connect to the player!
+                  player.connect();
+              };
+          </script>
+
+          <div class="slidecontainer">
+              <input type="range" min="1" max="100" value="50" id="myRange">
+              <p>Value: <span id="demo"></span></p>
+          </div>
+
+
+          <script>
+
+          </script>
+          <%}%>
+          <% if (user.spotify.enabled=="false") {%>
+          <h3> Spotify not enabled</h3>
+          <%}%>
+      </div>
+      <%}%>
+      <div id="gcalendar" class="tab-pane fade">
+          <div id="events"></div>
+          <script>
+              $.ajax({
+                  url: "https://www.googleapis.com/calendar/v3/users/me/calendarList",
+
+                  type: "GET",
+                  contentType: "application/json",
+
+                  headers:{
+                      'Accept': 'application/json',
+                      'Content-Type': 'application/json',
+                      'Authorization': 'Bearer <%=user.google.token%>'
+                  },
+
+                  success: function (data) {
+                      var d = new Date();
+                      var p =new Date(d.getFullYear(),d.getMonth(),d.getDate(), 0, 0,0);
+                      var s =new Date(d.getFullYear(),d.getMonth(),d.getDate(), 23, 59,59);
+
+                      function ISODateString(d){
+                          function pad(n){return n<10 ? '0'+n : n}
+                          return d.getUTCFullYear()+'-'
+                              + pad(d.getUTCMonth()+1)+'-'
+                              + pad(d.getUTCDate())+'T'
+                              + pad(d.getUTCHours())+':'
+                              + pad(d.getUTCMinutes())+':'
+                              + pad(d.getUTCSeconds())+'Z'}
+
+                    p=ISODateString(p);
+
+                      s=ISODateString(s);
+
+
+                      $.ajax({
+                          url: "https://www.googleapis.com/calendar/v3/calendars/"+data.items[0].id+"/events?timeMin="+p+"&timeMax="+s,
+
+                          type: "GET",
+                          contentType: "application/json",
+
+                          headers:{
+                              'Accept': 'application/json',
+                              'Content-Type': 'application/json',
+                              'Authorization': 'Bearer <%=user.google.token%>'
+                          },
+
+                          success: function (data) {
+                            console.log(JSON.stringify(data));
+                            for (i in data.items)
+                              $( "#events" ).append( '<h3>'+data.items[i].summary+'<p>from  '+data.items[i].start.dateTime+'   to'+data.items[i].end.dateTime+'</p></h3>' );
+
+                          }
+
+                      });
+
+                  }
+
+              });
+
+          </script>
+      </div>
+
+      </div>
+  <script>
 /* Get an authenticat11ion request from the server,
  * sign it with the key, verify the results on the server
  */
@@ -285,11 +538,14 @@ function ajaxGet(url, cb) {
 	var xhr = new XMLHttpRequest();
 	xhr.open("GET", url);
 	xhr.onload = function() {
-			alert("url "+url+"  cb"+xhr.responseText);
+
+        alert("url "+url+"  cb"+xhr.responseText);
 
 		cb(xhr.responseText);
 	};
-	xhr.send();
+    alert("ghfgf");
+
+    xhr.send();
 }
 function ajaxPost(url, data, cb) {
 	var xhr = new XMLHttpRequest();
@@ -360,7 +616,7 @@ $('.input-number').change(function() {
     ajaxPost("/temp", res, function(res) {
         res=JSON.parse(res);
         if (JSON.stringify(res.stat) === "true") {
-            alert("changed");
+           // alert("changed");
 
 
 
@@ -390,6 +646,7 @@ $('.input-number').change(function() {
       lat= position.coords.longitude;
       readd();
   }
+      getLocation();
 </script>
       </div>
     </div>

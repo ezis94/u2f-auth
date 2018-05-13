@@ -2,6 +2,8 @@ var LocalStrategy = require("passport-local").Strategy;
 var FacebookStrategy = require("passport-facebook").Strategy;
 var TwitterStrategy = require("passport-twitter").Strategy;
 var GoogleStrategy = require("passport-google-oauth").OAuth2Strategy;
+const SpotifyStrategy = require('passport-spotify').Strategy;
+
 var User = require("../models/user");
 var Car = require("../models/user_car");
 var configAuth = require("./auth");
@@ -20,7 +22,42 @@ module.exports = function(passport) {
         });
     });
   });
+    passport.use(new SpotifyStrategy({
+            clientID: "8b9fff06998742eda4e4c23e1b89e2d0",
+            clientSecret: "bb00e746afe14aa2b48d9dae4f0b3923",
+            callbackURL: "https://localhost:4433/auth/spotify/callback",
+            passReqToCallback : true
 
+        },
+        function(req,accessToken, refreshToken, expires_in, profile, done) {
+            process.nextTick(function() {
+                User.findOne({ "spotify.spotifyId": profile.id }, function (err, user) {
+                    if (err) return done(err);
+                    if (user) {                        console.log(JSON.stringify(expires_in));
+                    }
+                    else {
+                        var user=req.user;
+                        user.spotify.spotifyId=profile.id;
+                        user.spotify.refresh=refreshToken;
+                        user.spotify.access=accessToken;
+                       var  date=new Date().getTime();
+                        user.spotify.expires=date+parseInt(expires_in,10);
+                        console.log(JSON.stringify(refreshToken));
+
+                        user.save(function(err) {
+                            if (err)
+                                return done(err);
+
+                            return done(null, user);
+                        });
+
+                    }
+
+                    return done(err, user);
+                });
+            });
+        }
+    ));
   passport.use(
     "local-signup",
     new LocalStrategy(
@@ -53,7 +90,9 @@ module.exports = function(passport) {
                 newUser.car.heating.right = "20";
                 newUser.car.ventilation.left = "2";
                 newUser.car.ventilation.right = "2";
-
+                newUser.map.enabled="false";
+                newUser.spotify.enabled="false";
+                newUser.google.enabled="false";
                 newUser.save(function(err) {
                 if (err) throw err;
                 Car.findOne({ "local.email": tname }, function(err, user) {
@@ -297,31 +336,32 @@ module.exports = function(passport) {
       }
     )
   );
+    passport.use(new GoogleStrategy({
+            clientID: "897949743059-1ghfq0eo7eot68goq0hqbjl33eabvicd.apps.googleusercontent.com",
+            clientSecret: "ouYHqAuCD-YzGW5d9RRstVE_",
+            callbackURL:"https://localhost:4433/auth/google/callback",
+            passReqToCallback : true
 
-  passport.use(
-    new GoogleStrategy(
-      {
-        clientID: "897949743059-29ad8f8jb800tcr6snvp809bj8odglsu.apps.googleusercontent.com",
-        clientSecret: "yjMA6z7XJPDF3gseGEMAeTyT",
-        callbackURL:"https://localhost:4433/connect/google/callback",
-          passReqToCallback : true
-      },
+        },
         function(req, token, refreshToken, profile, done) {
-
             // asynchronous
             process.nextTick(function() {
                 // check if the user is already logged in
                 if (!req.user) {
 
                     User.findOne({ 'google.id' : profile.id }, function(err, user) {
-                        if (err)
-                            return done(err);
+                        if (err){console.log(err);
+                            return done(err);}
 
                         if (user) {
 
                             // if there is a user id already but no token (user was linked at one point and then removed)
                             if (!user.google.token) {
                                 user.google.token = token;
+                                console.log("dsadafaf"+token);
+                                user.google.refresh = refreshToken;
+                                var  date=new Date().getTime();
+                                user.google.expires=date+3600;
                                 user.google.name  = profile.displayName;
                                 user.google.email = (profile.emails[0].value || '').toLowerCase(); // pull the first email
 
@@ -357,6 +397,12 @@ module.exports = function(passport) {
 
                     user.google.id    = profile.id;
                     user.google.token = token;
+                    user.google.refresh = refreshToken;
+                    console.log("dsadafaf"+token);
+                    console.log("dsadafaf"+refreshToken);
+
+                    var  date=new Date().getTime();
+                    user.google.expires=date+3600;
                     user.google.name  = profile.displayName;
                     user.google.email = (profile.emails[0].value || '').toLowerCase(); // pull the first email
 
@@ -372,6 +418,6 @@ module.exports = function(passport) {
             });
 
         }
-    )
-  );
+    ));
+
 };

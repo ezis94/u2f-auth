@@ -3,7 +3,12 @@ var passport = require("passport");
 var router = express.Router();
 var u2f = require("u2f");
 var https = require("https");
+const AccessControl = require('accesscontrol');
+
+var request = require('request'); // "Request" library
+var GoogleTokenProvider = require('refresh-token').GoogleTokenProvider;
 var APP_ID = "https://localhost:4433";
+
 var fs = require("fs");
 var Users = {};
 var User1 = require("../models/user");
@@ -12,9 +17,47 @@ var googleMapsClient = require('@google/maps').createClient({
     clientId: '897949743059-29ad8f8jb800tcr6snvp809bj8odglsu.apps.googleusercontent.com',
     clientSecret: 'yjMA6z7XJPDF3gseGEMAeTyT',
 });
+
 var tempo_handle;
 var User;
 var Sessions = {};
+
+//ROLE STUFF-----------------------------------------------------------------------------------------
+const ac = new AccessControl();
+ac.grant('maintenance')
+    .readOwn('car')
+.grant('non_owner')                    // define new or modify existing role. also takes an array.
+    .extend('maintenance')                 // inherit role capabilities. also takes an array
+    .readOwn('web')
+    .createOwn('acc_app')             // equivalent to .createOwn('video', ['*'])
+    .deleteOwn('acc_app')
+    .updateOwn('apps')
+    .readOwn('logs')
+.grant('owner')                    // define new or modify existing role. also takes an array.
+    .extend('non_owner')                 // inherit role capabilities. also takes an array
+    .createAny('non_owner')
+     .readAny('non_owner_logs')
+    .readOwn('logs')
+    .readAny('non_owner_permissions')
+    .updateAny('non_owner_permissions')  // explicitly defined attributes
+    .deleteAny('non_owner')
+.grant('admin')                   // switch to another role without breaking the chain
+    .createAny('non_owner')
+    .createAny('owner')// inherit role capabilities. also takes an array
+    .readOwn('web')
+    .updateAny('role')  // explicitly defined attributes
+    .deleteAny('non_owner')
+    .deleteAny('owner')
+
+/*const permission = ac.can('user').createOwn('video');
+console.log(permission.granted);    // —> true
+console.log(permission.attributes); // —> ['*'] (all attributes)
+
+permission = ac.can('admin').updateAny('video');
+console.log(permission.granted);    // —> true
+console.log(permission.attributes); // —> ['title']*/
+//----------------------------------------------------------------------------------------------------
+
 router.get("/", function(req, res, next) {
   if (!req.cookies.userid) {
     res.cookie("userid", Math.floor(Math.random() * 100000));
@@ -25,7 +68,32 @@ router.get("/", function(req, res, next) {
 router.get("/login", function(req, res, next) {
   res.render("login.ejs", { message: req.flash("loginMessage") });
 });
+router.get("/app_settings", function(req, res, next) {
+    var permission = ac.can(req.user.local.ROLE).updateOwn('apps');
+    if (permission.granted) {
+        res.render("app_settings.ejs", {user: req.user});
+    }
+    else res.status(403).end();
+});
+router.get("/acc_settings", function(req, res, next) {
+    var permission = ac.can(req.user.local.ROLE).readAny('non_owner_permissions');
+    if (permission.granted) {
+        process.nextTick(function () {
+            User1.find({"local.ROLE": "non_owner"}, function (err, users) {
+                if (err) return done(err);
+                if (!users)
+                    return done(null, false, req.flash("loginMessage", "No user found."));
+                else {
 
+                    console.log(JSON.stringify(users));
+                    res.render("acc_settings.ejs", {user: req.user,users:users});
+
+                }
+            });
+        });
+    }
+    else res.status(403).end();
+});
 router.get("/loginu2f", function(req, res, next) {
   console.log(req);
   res.render("loginu2f.ejs", {
@@ -49,12 +117,169 @@ router.get("/signup", function(req, res) {
 });
 
 router.get("/profile", isLoggedIn, function(req, res) {
-  console.log(req.user);
-  res.render("profile.ejs", { user: req.user });
+    var permission = ac.can(req.user.local.ROLE).readOwn('web');
+    if (permission.granted) {
+        console.log(req.user);
+        var date = new Date().getTime();
+
+        var user1 = req.user;
+        if (req.user.spotify.expires <= date) {
+            console.log(date);
+            var authOptions = {
+                url: 'https://accounts.spotify.com/api/token',
+                headers: {'Authorization': 'Basic ' + (new Buffer('8b9fff06998742eda4e4c23e1b89e2d0:bb00e746afe14aa2b48d9dae4f0b3923').toString('base64'))},
+                form: {
+                    grant_type: 'refresh_token',
+                    refresh_token: req.user.spotify.refresh
+                },
+                json: true
+            };
+
+            request.post(authOptions, function (error, response, body) {
+                if (!error && response.statusCode === 200) {
+                    var access_token = body.access_token;
+                    var expire_in = body.expires_in;
+                    console.log(JSON.stringify(body));
+                    process.nextTick(function () {
+                        User1.findOne({"local.email": user1.local.email}, function (err, user) {
+                            if (err) return done(err);
+                            if (!user)
+                                return done(null, false, req.flash("loginMessage", "No user found."));
+                            else {
+
+                                user.spotify.access = access_token;
+                                var date = new Date().getTime();
+
+                                var t = parseInt(expire_in, 10) * 1000;
+                                console.log(t);
+                                user.spotify.expires = date + t;
+
+
+                                user.save(function (err) {
+                                    if (err) throw err;
+                                });
+                            }
+                        });
+                    });
+                }
+            });
+        }
+        if (req.user.google.expires <= date) {
+            var tokenProvider = new GoogleTokenProvider({
+                refresh_token: req.user.google.refresh,
+                client_id: '897949743059-1ghfq0eo7eot68goq0hqbjl33eabvicd.apps.googleusercontent.com',
+                client_secret: 'ouYHqAuCD-YzGW5d9RRstVE_'
+            });
+            tokenProvider.getToken(function (err, token) {
+
+
+                console.log(JSON.stringify(token));
+                process.nextTick(function () {
+                    User1.findOne({"local.email": user1.local.email}, function (err, user) {
+                        if (err) return done(err);
+                        if (!user)
+                            return done(null, false, req.flash("loginMessage", "No user found."));
+                        else {
+
+                            user.google.access = token;
+                            var date = new Date().getTime();
+
+                            user.spotify.expires = date + 3600000;
+
+
+                            user.save(function (err) {
+                                if (err) throw err;
+                            });
+                        }
+                    });
+                });
+            });
+        }
+        res.render("profile.ejs", {user: req.user});
+    }
+    else res.status(403).end();
 });
 router.get("/profile_car", isLoggedIn, function(req, res) {
+    var permission = ac.can(req.user.local.ROLE).readOwn('car');
+    if (permission.granted) {
     console.log(req.user);
+    var  date=new Date().getTime();
+console.log(date);
+    var user1=req.user;
+    if (req.user.spotify.expires<=date){
+        console.log(date);
+        var authOptions = {
+            url: 'https://accounts.spotify.com/api/token',
+            headers: { 'Authorization': 'Basic ' + (new Buffer('8b9fff06998742eda4e4c23e1b89e2d0:bb00e746afe14aa2b48d9dae4f0b3923' ).toString('base64')) },
+            form: {
+                grant_type: 'refresh_token',
+                refresh_token: req.user.spotify.refresh
+            },
+            json: true
+        };
+
+        request.post(authOptions, function(error, response, body) {
+            if (!error && response.statusCode === 200) {
+                var access_token = body.access_token;
+                var expire_in=body.expires_in;
+                console.log(JSON.stringify(body));
+                process.nextTick(function() {
+                    User1.findOne({ "local.email": user1.local.email }, function(err, user) {
+                        if (err) return done(err);
+                        if (!user)
+                            return done(null, false, req.flash("loginMessage", "No user found."));
+                        else {
+
+                            user.spotify.access=access_token;
+                            var  date=new Date().getTime();
+                            var t=parseInt(expire_in,10)*1000;
+                            console.log("this is "+t);
+
+                            user.spotify.expires=date+t;
+
+
+                            user.save(function(err) {
+                                if (err) throw err;
+                            });
+                        }
+                    });
+                });
+            }
+        });
+    }
+     if (req.user.google.expires<=date){
+        console.log("hleos");
+        var tokenProvider = new GoogleTokenProvider({
+            refresh_token: req.user.google.refresh,
+            client_id:     '897949743059-1ghfq0eo7eot68goq0hqbjl33eabvicd.apps.googleusercontent.com',
+            client_secret: 'ouYHqAuCD-YzGW5d9RRstVE_'
+        });
+        tokenProvider.getToken(function (err, token) {
+            if (err) console.log(err);
+console.log (JSON.stringify(token));
+            process.nextTick(function() {
+                User1.findOne({ "local.email": user1.local.email }, function(err, user) {
+                    if (err) return done(err);
+                    if (!user)
+                        return done(null, false, req.flash("loginMessage", "No user found."));
+                    else {
+
+                        user.google.token=token;
+                        var  date=new Date().getTime();
+
+                        user.google.expires=date+3600000;
+
+
+                        user.save(function(err) {
+                            if (err) throw err;
+                        });
+                    }
+                });
+            });        });
+    }
     res.render("profile_car.ejs", { user: req.user });
+    }
+    else res.status(403).end();
 });
 router.get("/logout", function(req, res) {
   req.logout();
@@ -96,14 +321,7 @@ router.post(
     failureFlash: true
   })
 );
-router.post(
-    "/login",
-    passport.authenticate("local-login", {
-        successRedirect: "/loginu2f",
-        failureRedirect: "/login",
-        failureFlash: true
-    })
-);
+
 router.post(
   "/temp", function(req, res) {
         console.log(JSON.stringify(req.user));
@@ -166,6 +384,21 @@ router.get(
     failureRedirect: "/"
   })
 );
+
+router.get('/auth/spotify',
+    passport.authenticate('spotify',{ scope: ["user-read-birthdate", "user-read-email", "user-read-private ","user-modify-playback-state", "playlist-read-private","streaming",""] }),
+    function(req, res){
+        // The request will be redirected to spotify for authentication, so this
+        // function will not be called.
+    });
+
+router.get('/auth/spotify/callback',
+    passport.authenticate('spotify', { failureRedirect: '/login' }),
+    function(req, res) {
+        // Successful authentication, redirect home.
+        res.redirect('/profile');
+    });
+
 router.get("/api/register_request", function(req, res) {
   var authRequest = u2f.request(APP_ID);
   console.log(authRequest);
@@ -188,6 +421,7 @@ router.get("/api/sign_request", function(req, res) {
   Sessions[req.cookies.userid] = { authRequest: authRequest[0] };
   res.send(JSON.stringify(authRequest));
 });
+
 
 router.post("/addkey", function(req, res) {
   console.log(JSON.stringify(req.user));
@@ -215,9 +449,10 @@ router.post("/addkey", function(req, res) {
 // google ---------------------------------
 
 // send to google to do the authentication
-router.get('/connect/google', passport.authorize('google', { scope : ['profile', 'email', 'gmail.readonly'] }));
+router.get('/connect/google', passport.authorize('google', { scope : ['profile', 'email', 'https://www.googleapis.com/auth/calendar.readonly'],accessType: 'offline', approvalPrompt: 'force'  }));
 
 // the callback after google has authorized the user
+
 router.get('/connect/google/callback',
     passport.authorize('google', {
         successRedirect : '/profile',
@@ -343,6 +578,90 @@ router.post(
             });
         });
     });
+router.post("/map_status", function(req, res) {
+    process.nextTick(function() {
+        User1.findOne({ "local.email": req.user.local.email }, function(err, user) {
+            if (err) return done(err);
+            if (!user)
+                return done(null, false, req.flash("loginMessage", "No user found."));
+            else {
+
+
+
+
+                    console.log( req.body.mapon);
+                    User1.update({"local.email": req.user.local.email}, {
+                        "map.enabled": req.body.mapon,
+
+                    }, function(err, numberAffected, rawResponse) {
+                        console.log(JSON.stringify(user));
+
+                        res.send(JSON.stringify({ stat: true}));
+                    });
+
+
+
+
+
+
+
+
+            }
+        });
+    });
+});
+router.post("/spotify_status", function(req, res) {
+    process.nextTick(function() {
+        User1.findOne({ "local.email": req.user.local.email }, function(err, user) {
+            if (err) return done(err);
+            if (!user)
+                return done(null, false, req.flash("loginMessage", "No user found."));
+            else {
+
+
+
+
+                console.log( req.body.mapon);
+                User1.update({"local.email": req.user.local.email}, {
+                    "spotify.enabled": req.body.spoton,
+
+                }, function(err, numberAffected, rawResponse) {
+                    console.log(JSON.stringify(user));
+
+                    res.send(JSON.stringify({ stat: true}));
+                });
+
+
+
+
+
+
+
+
+            }
+        });
+    });
+});
+router.post("/calendar_status", function(req, res) {
+    process.nextTick(function() {
+        User1.findOne({ "local.email": req.user.local.email }, function(err, user) {
+            if (err) return done(err);
+            if (!user)
+                return done(null, false, req.flash("loginMessage", "No user found."));
+            else {
+                console.log( req.body.mapon);
+                User1.update({"local.email": req.user.local.email}, {
+                    "google.enabled": req.body.calend,
+
+                }, function(err, numberAffected, rawResponse) {
+                    console.log(JSON.stringify(user));
+
+                    res.send(JSON.stringify({ stat: true}));
+                });
+            }
+        });
+    });
+});
 module.exports = router;
 
 function isLoggedIn(req, res, next) {

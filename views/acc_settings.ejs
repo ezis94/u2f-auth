@@ -1,0 +1,25 @@
+<% include partials/head %>
+
+<body>
+
+<h3>HELOO <%=user.local.email%></h3>
+<a href="/profile">Back</a>
+<table style="width:100%"id="user_table">
+    <tr>
+        <th>email</th>
+        <th>speed limit</th>
+        <th>trunk</th>
+    </tr>
+<br>
+    <br>
+</table>
+<script>
+    <% users.forEach(function(user1){%>
+
+        $("#user_table").append("<tr><th id='<%= user1.local.email %>'><%= user1.local.email %></th><th> <input type='text' name='<%= user1.local.email %> speed' ></th><th><label class='switch'><input id='<%= user1.local.email %> trunk' type='checkbox' onchange='changeTrunk(this.checked)'><span class='slider round'></span></label></th></tr>");
+   <%});%>
+
+
+</script>
+</body>
+</html>

@@ -12,7 +12,16 @@
             <li class="active"><a data-toggle="tab" href="#home">Home</a></li>
 
             <li><a data-toggle="tab" href="#venttemp">Temperature/ventilation</a></li>
+            <% if (user.map.enabled=="true") {%>
             <li><a data-toggle="tab" href="#gmaps">Google maps</a></li>
+            <%}%>
+            <% if (user.spotify.enabled=="true") {%>
+            <li><a data-toggle="tab" href="#spotify">Spotify</a></li>
+            <%}%>
+            <% if (user.google.enabled=="true") {%>
+
+            <li><a data-toggle="tab" href="#gcalendar">Calendar</a></li>
+            <%}%>
 
         </ul>
     </div>
@@ -26,7 +35,13 @@
                 <span><strong>user id</strong>: <%= user._id ? user._id : '' %></span><br>
                 <span class="fa fa-sign-out"><a href="/"> Sign out</a></span>
                 <hr>
-
+                <%if ((user.local.ROLE=="owner")||(user.local.ROLE=="non_owner")) {%>
+                <span ><a href="/app_settings">Application settings</a></span>
+                <% } %>
+                <br>
+                <%if (user.local.ROLE=="owner") {%>
+                <span ><a href="/acc_settings">Non-owner settings</a></span>
+                <% } %>
                 <div class="jumbotron">
                     <% if (user.local.email != null) { %>
                     <img src="https://avatars.io/gravatar/<%= user.local.email %>/140" class="img-circle"><br>
@@ -117,11 +132,28 @@
             </p>
         </form>
     </div>
+    <% if (user.map.enabled=="true") {%>
+
     <div id="gmaps" class="tab-pane fade">
+
+<h3>Google map is on</h3>
+
+    </div>
+    <%}%>
+    <% if (user.spotify.enabled=="true") {%>
+
+    <div id="spotify" class="tab-pane fade ">
+        <a href="/auth/spotify">this to connect spotify</a>
+
+    </div>
+    <%}%>
+    <% if (user.google.enabled=="true") {%>
+
+    <div id="gcalendar" class="tab-pane fade">
         <!-- GOOGLE INFORMATION -->
         <div class="col-sm-6">
-            <div class="well">
-                <h3 class="text-danger"><span class="fa fa-google-plus"></span> Google+</h3>
+          <div class="well">
+                <h3 class="text-danger"><span class="fa fa-google-plus"></span> Google connect</h3>
 
                 <% if (user.google.token) { %>
                 <p>
@@ -131,20 +163,22 @@
                     <strong>name</strong>: <%= user.google.name %>
                 </p>
 
-                <a href="/unlink/google" class="btn btn-danger">Unlink</a>
+                <a href="/unlink/google" >Unlink</a>
                 <% } else { %>
-                <a href="/connect/google" class="btn btn-danger">Connect Google</a>
+                <a href="/connect/google" >Connect Google</a>
                 <% } %>
 
             </div>
         </div>
     </div>
+    <%}%>
+    </div>
 
-</div>
 
 <% if (user.facebook.email != null) { %>
 
 <script>
+
     var tagg=[];
     var map;
     var loc;
