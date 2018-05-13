@@ -13,11 +13,67 @@
 <br>
     <br>
 </table>
+<button id="createNon_Owner" onclick="createCode(this.id)">Create a non owner</button>
+<button id="createMaintenance" onclick="createCode(this.id)">Create a maintenance worker</button>
+<p id="code"></p>
 <script>
     <% users.forEach(function(user1){%>
 
-        $("#user_table").append("<tr><th id='<%= user1.local.email %>'><%= user1.local.email %></th><th> <input type='text' name='<%= user1.local.email %> speed' ></th><th><label class='switch'><input id='<%= user1.local.email %> trunk' type='checkbox' onchange='changeTrunk(this.checked)'><span class='slider round'></span></label></th></tr>");
-   <%});%>
+    $("#user_table").append("<tr><th id='<%= user1.local.email %>'><%= user1.local.email %></th><th><select id='<%= user1.local.email %>'><option id='<%= user1.local.email %>_none'>none</option><option id='<%= user1.local.email %>_50'>50</option><option id='<%= user1.local.email %>_60'>60</option><option id='<%= user1.local.email %>_70'>70</option><option id='<%= user1.local.email %>_80'>80</option><option id='<%= user1.local.email %>_90'>90</option><option id='<%= user1.local.email %>_110'>110</option><option id='<%= user1.local.email %>_130'>130</option></select></th><th><label class='switch'><input id='<%= user1.local.email %>_trunk' type='checkbox' onchange='changeTrunk(this.checked,this.id)'><span class='slider round'></span></label></th></tr>");
+    document.getElementById("<%= user1.local.email %>_<%= user1.local.limit %>").selected = "true";
+    <% if (user1.local.trunk=="true") {%>
+     document.getElementById("<%= user1.local.email %>_trunk").checked=true;
+
+    <%}%>
+    <%});%>
+    $('select').on('change', function() {
+        var res={id:this.id,limit:this.value};
+        ajaxPost("/changelimit", res, function(res) {
+            res=JSON.parse(res);
+            if (JSON.stringify(res.stat) === "true") {
+
+
+            } else {
+
+            }
+        });
+    })
+    function changeTrunk(stat,id){
+        var res={};
+        res.trunk=stat;
+        var str = id.substring(0, id.length - 6);
+        res.id=str;
+        ajaxPost("/changetrunk", res, function(res) {
+            res=JSON.parse(res);
+            if (res.stat!=true) alert("fail");
+        });
+    }
+    function createCode(id){
+        var res={role:id};
+        ajaxPost("/createuser", res, function(res) {
+            res=JSON.parse(res);
+            if (JSON.stringify(res.stat) === "true") {
+                document.getElementById("code").innerHTML = res.key;
+
+
+            } else {
+
+            }
+        });
+
+
+    }
+    function ajaxPost(url, data, cb) {
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", url);
+        xhr.setRequestHeader("Content-type", "application/json");
+        xhr.onload = function() {
+            cb(xhr.responseText);
+        };
+        xhr.send(JSON.stringify(data));
+    }
+
+
 
 
 </script>

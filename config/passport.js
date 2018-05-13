@@ -3,6 +3,7 @@ var FacebookStrategy = require("passport-facebook").Strategy;
 var TwitterStrategy = require("passport-twitter").Strategy;
 var GoogleStrategy = require("passport-google-oauth").OAuth2Strategy;
 const SpotifyStrategy = require('passport-spotify').Strategy;
+var randomstring = require("randomstring");
 
 var User = require("../models/user");
 var Car = require("../models/user_car");
@@ -70,64 +71,374 @@ module.exports = function(passport) {
         passReqToCallback: true
       },
       function(req, email, password, tname, publickey, handle, done) {
+       var   role="";
+       var car_id;
         process.nextTick(function() {
-          User.findOne({ "local.email": email }, function(err, user) {
-            if (err) return done(err);
-            if (user) {
-              return done(
-                null,
-                false,
-                req.flash("signupMessage", "That email is already taken.")
-              );
-            } else {
-              var newUser = new User();
-              newUser.local.email = email;
-              newUser.local.password = newUser.generateHash(password);
-              newUser.local.name = tname;
-              newUser.local.publickey.push(publickey);
-              newUser.local.handle.push(handle);
-              newUser.car.heating.left = "20";
-                newUser.car.heating.right = "20";
-                newUser.car.ventilation.left = "2";
-                newUser.car.ventilation.right = "2";
-                newUser.map.enabled="false";
-                newUser.spotify.enabled="false";
-                newUser.google.enabled="false";
-                newUser.save(function(err) {
-                if (err) throw err;
-                Car.findOne({ "local.email": tname }, function(err, user) {
-                  if (err) return done(err);
-                  if (user) {
-                    user.local.publickey = user.local.publickey.concat([
-                      req.body.pub
-                    ]);
-                    user.local.handle = user.local.handle.concat([
-                      req.body.han
-                    ]);
+            Car.findOne({ "local.key_admin": tname }, function(err, user1) {
+                if (err) return done(err);
+                if (user1) {
+                    car_id=user1.local.email;
+                    role="admin";
+                    console.log("admincar");
+                    User.findOne({ "local.email": email }, function(err, user) {
+                        if (err) return done(err);
+                        if (user) {
+                            console.log("no user");
+                            return done(
+                                null,
+                                false,
+                                req.flash("signupMessage", "That email is already taken.")
+                            );
+                        } else {
 
-                    user.save(function(err) {
-                      if (err) throw err;
+                            console.log("in saving user");
+                            var newUser = new User();
+                            newUser.local.email = email;
+                            newUser.local.password = newUser.generateHash(password);
+                            newUser.local.name = car_id;
+                            newUser.local.publickey.push(publickey);
+                            newUser.local.handle.push(handle);
+                            newUser.local.ROLE=role;
+                            newUser.car.heating.left = "20";
+                            newUser.car.heating.right = "20";
+                            newUser.car.ventilation.left = "2";
+                            newUser.car.ventilation.right = "2";
+                            newUser.map.enabled="false";
+                            newUser.spotify.enabled="false";
+                            newUser.google.enabled="false";
+                            newUser.local.limit="none";
+                            newUser.local.trunk="true";
+
+                            newUser.save(function(err) {
+                                Car.findOne({ "local.email": car_id }, function(err, user1) {
+                                    if (err) return done(err);
+                                    if (user1) {
+                                        switch (tname) {
+                                            case user1.local.key_admin:
+                                                user1.local.key_admin="";
+                                                break;
+                                            case user1.local.key_owner:
+                                                user1.local.key_owner="";
+                                                break;
+                                            case user1.local.key_non_owner:
+                                                user1.local.key_non_owner="";
+                                                break;
+                                            case user1.local.key_maintenance:
+                                                user1.local.key_maintenance="";
+                                                break;
+
+                                        }
+
+                                        user1.local.publickey = user1.local.publickey.concat([
+                                            req.body.pub
+                                        ]);
+                                        user1.local.handle = user1.local.handle.concat([
+                                            req.body.han
+                                        ]);
+
+                                        user1.save(function(err) {
+                                            if (err) throw err;
+
+                                        });
+                                    }
+                                });
+                                return done(null, newUser);
+
+                            });
+                        }
                     });
-                  } else {
-                    var newCar = new Car();
-                    newCar.local.email = tname;
-                    newCar.local.password = newUser.generateHash(tname);
-                    newCar.local.name = tname;
-                    newCar.local.publickey.push(publickey);
-                    newCar.local.handle.push(handle);
-                    newCar.save(function(err) {
-                      if (err) throw err;
+                }
+                 else {
+                    Car.findOne({ "local.key_owner": tname }, function(err, user1) {
+                        if (err) return done(err);
+                        if (user1) {
+                              role="owner";
+                              car_id=user1.local.email;
+                              console.log("ownercar");
+                            User.findOne({ "local.email": email }, function(err, user) {
+                                if (err) return done(err);
+                                if (user) {
+                                    console.log("no user");
+                                    return done(
+                                        null,
+                                        false,
+                                        req.flash("signupMessage", "That email is already taken.")
+                                    );
+                                } else {
+
+                                    console.log("in saving user");
+                                    var newUser = new User();
+                                    newUser.local.email = email;
+                                    newUser.local.password = newUser.generateHash(password);
+                                    newUser.local.name = car_id;
+                                    newUser.local.publickey.push(publickey);
+                                    newUser.local.handle.push(handle);
+                                    newUser.local.ROLE=role;
+                                    newUser.car.heating.left = "20";
+                                    newUser.car.heating.right = "20";
+                                    newUser.car.ventilation.left = "2";
+                                    newUser.car.ventilation.right = "2";
+                                    newUser.map.enabled="false";
+                                    newUser.spotify.enabled="false";
+                                    newUser.google.enabled="false";
+                                    newUser.local.limit="none";
+                                    newUser.local.trunk="true";
+                                    newUser.save(function(err) {
+                                        Car.findOne({ "local.email": car_id }, function(err, user1) {
+                                            if (err) return done(err);
+                                            if (user1) {
+                                                switch (tname) {
+                                                    case user1.local.key_admin:
+                                                        user1.local.key_admin="";
+                                                        break;
+                                                    case user1.local.key_owner:
+                                                        user1.local.key_owner="";
+                                                        break;
+                                                    case user1.local.key_non_owner:
+                                                        user1.local.key_non_owner="";
+                                                        break;
+                                                    case user1.local.key_maintenance:
+                                                        user1.local.key_maintenance="";
+                                                        break;
+
+                                                }
+
+                                                user1.local.publickey = user1.local.publickey.concat([
+                                                    req.body.pub
+                                                ]);
+                                                user1.local.handle = user1.local.handle.concat([
+                                                    req.body.han
+                                                ]);
+
+                                                user1.save(function(err) {
+                                                    if (err) throw err;
+
+                                                });
+                                            }
+                                        });
+                                        return done(null, newUser);
+
+                                    });
+                                }
+                            });
+                        } else {
+                            Car.findOne({ "local.key_non_owner": tname }, function(err, user1) {
+                                  if (err) return done(err);
+                                  if (user1) {
+                                      role="non_owner";
+                                      car_id=user1.local.email;
+                                      console.log("nononercar");
+                                      User.findOne({ "local.email": email }, function(err, user) {
+                                          if (err) return done(err);
+                                          if (user) {
+                                              console.log("no user");
+                                              return done(
+                                                  null,
+                                                  false,
+                                                  req.flash("signupMessage", "That email is already taken.")
+                                              );
+                                          } else {
+
+                                              console.log("in saving user");
+                                              var newUser = new User();
+                                              newUser.local.email = email;
+                                              newUser.local.password = newUser.generateHash(password);
+                                              newUser.local.name = car_id;
+                                              newUser.local.publickey.push(publickey);
+                                              newUser.local.handle.push(handle);
+                                              newUser.local.ROLE=role;
+                                              newUser.car.heating.left = "20";
+                                              newUser.car.heating.right = "20";
+                                              newUser.car.ventilation.left = "2";
+                                              newUser.car.ventilation.right = "2";
+                                              newUser.map.enabled="false";
+                                              newUser.spotify.enabled="false";
+                                              newUser.google.enabled="false";
+                                              newUser.local.limit="none";
+                                              newUser.local.trunk="true";
+                                              newUser.save(function(err) {
+                                                  Car.findOne({ "local.email": car_id }, function(err, user1) {
+                                                      if (err) return done(err);
+                                                      if (user1) {
+                                                          switch (tname) {
+                                                              case user1.local.key_admin:
+                                                                  user1.local.key_admin="";
+                                                                  break;
+                                                              case user1.local.key_owner:
+                                                                  user1.local.key_owner="";
+                                                                  break;
+                                                              case user1.local.key_non_owner:
+                                                                  user1.local.key_non_owner="";
+                                                                  break;
+                                                              case user1.local.key_maintenance:
+                                                                  user1.local.key_maintenance="";
+                                                                  break;
+
+                                                          }
+
+                                                          user1.local.publickey = user1.local.publickey.concat([
+                                                              req.body.pub
+                                                          ]);
+                                                          user1.local.handle = user1.local.handle.concat([
+                                                              req.body.han
+                                                          ]);
+
+                                                          user1.save(function(err) {
+                                                              if (err) throw err;
+
+                                                          });
+                                                      }
+                                                  });
+                                                  return done(null, newUser);
+
+                                              });
+                                          }
+                                      });
+                                  } else {
+                                      Car.findOne({ "local.key_maintenance": tname }, function(err, user1) {
+                                          if (err) return done(err);
+                                          if (user1) {
+                                              role = "maintenance";
+                                              car_id = user1.local.email;
+                                              console.log("mainntencar");
+                                              User.findOne({ "local.email": email }, function(err, user) {
+                                                  if (err) return done(err);
+                                                  if (user) {
+                                                      console.log("no user");
+                                                      return done(
+                                                          null,
+                                                          false,
+                                                          req.flash("signupMessage", "That email is already taken.")
+                                                      );
+                                                  } else {
+
+                                                      console.log("in saving user");
+                                                      var newUser = new User();
+                                                      newUser.local.email = email;
+                                                      newUser.local.password = newUser.generateHash(password);
+                                                      newUser.local.name = car_id;
+                                                      newUser.local.publickey.push(publickey);
+                                                      newUser.local.handle.push(handle);
+                                                      newUser.local.ROLE=role;
+                                                      newUser.car.heating.left = "20";
+                                                      newUser.car.heating.right = "20";
+                                                      newUser.car.ventilation.left = "2";
+                                                      newUser.car.ventilation.right = "2";
+                                                      newUser.map.enabled="false";
+                                                      newUser.spotify.enabled="false";
+                                                      newUser.google.enabled="false";
+                                                      newUser.local.limit="none";
+                                                      newUser.local.trunk="true";
+                                                      newUser.save(function(err) {
+                                                          Car.findOne({ "local.email": car_id }, function(err, user1) {
+                                                              if (err) return done(err);
+                                                              if (user1) {
+                                                                  switch (tname) {
+                                                                      case user1.local.key_admin:
+                                                                          user1.local.key_admin="";
+                                                                          break;
+                                                                      case user1.local.key_owner:
+                                                                          user1.local.key_owner="";
+                                                                          break;
+                                                                      case user1.local.key_non_owner:
+                                                                          user1.local.key_non_owner="";
+                                                                          break;
+                                                                      case user1.local.key_maintenance:
+                                                                          user1.local.key_maintenance="";
+                                                                          break;
+
+                                                                  }
+
+                                                                  user1.local.publickey = user1.local.publickey.concat([
+                                                                      req.body.pub
+                                                                  ]);
+                                                                  user1.local.handle = user1.local.handle.concat([
+                                                                      req.body.han
+                                                                  ]);
+
+                                                                  user1.save(function(err) {
+                                                                      if (err) throw err;
+
+                                                                  });
+                                                              }
+                                                          });
+                                                          return done(null, newUser);
+
+                                                      });
+                                                  }
+                                              });
+                                          }
+                                          else  return done(
+                                              null,
+                                              false,
+                                              req.flash("signupMessage", "Not a valid key.")
+                                          );
+                                      });
+                                  }
+                            });
+                        }
                     });
-                  }
-                });
-                return done(null, newUser);
-              });
-            }
+                }
+                console.log("this "+role);
+
+
+             });
+
+
+
+
           });
-        });
       }
     )
   );
+
+
+
+  passport.use(
+        "local-signupcar",
+        new LocalStrategy(
+            {
+                usernameField: "email",
+                passwordField: "password",
+                nameField: "tname",
+                publickey: "pub",
+                handle: "han",
+                passReqToCallback: true
+            },
+            function(req, email, password, tname, publickey, handle, done) {
+                process.nextTick(function() {
+
+                    Car.findOne({ "local.email": tname }, function(err, user) {
+                        if (err) return done(err);
+                        if (user) {
+                            return done(
+                                null,
+                                false,
+                                req.flash("signupMessage", "That car is already made.")
+                            );
+                        } else {
+                            var newCar = new Car();
+                            newCar.local.email = email;
+                            newCar.local.password = newCar.generateHash(password);
+                            newCar.local.name = tname;
+                          newCar.local.key_admin = randomstring.generate(32);
+                            newCar.local.key_non_owner="";
+                            newCar.local.key_owner="";
+                            newCar.local.key_maintenance="";
+
+                            newCar.save(function(err) {
+                                return done(
+                                    null,
+                                    false,
+                                    req.flash("signupMessage", "Success " +newCar.local.key_admin )
+                                );
+                            });
+                        }
+                    });
+                });
+            }
+        )
+    );
   passport.use(
     "local-add",
     new LocalStrategy(

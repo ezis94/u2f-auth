@@ -1,0 +1,65 @@
+<% include partials/head %>
+
+<body>
+
+<h3>HELOO <%=user.local.email%></h3>
+<a href="/profile">Back</a>
+<table style="width:100%"id="user_table">
+    <tr>
+        <th>email</th>
+        <th>role</th>
+    </tr>
+    <br>
+    <br>
+</table>
+<button id="createOwner" onclick="createCode(this.id)">Create an owner</button>
+<button id="createNon_Owner" onclick="createCode(this.id)">Create a non owner</button>
+<button id="createMaintenance" onclick="createCode(this.id)">Create a maintenance worker</button>
+<p id="code"></p>
+<script>
+    <% users.forEach(function(user1){%>
+
+    $("#user_table").append("<tr><th id='<%= user1.local.email %>'><%= user1.local.email %></th><th><select id='<%= user1.local.email %>'><option id='<%= user1.local.email %>_owner'>owner</option><option id='<%= user1.local.email %>_non_owner'>non_owner</option><option id='<%= user1.local.email %>_maintenance'>maintenance</option></select></th></tr>");
+    document.getElementById("<%= user1.local.email %>_<%= user1.local.ROLE %>").selected = "true";
+
+    <%});%>
+    $('select').on('change', function() {
+    var res={id:this.id,role:this.value};
+        ajaxPost("/changerole", res, function(res) {
+            res=JSON.parse(res);
+            if (JSON.stringify(res.stat) === "true") {
+
+
+            } else {
+
+            }
+        });
+    })
+    function createCode(id){
+        var res={role:id};
+        ajaxPost("/createuser", res, function(res) {
+            res=JSON.parse(res);
+            if (JSON.stringify(res.stat) === "true") {
+                document.getElementById("code").innerHTML = res.key;
+
+
+            } else {
+
+            }
+        });
+
+
+    }
+    function ajaxPost(url, data, cb) {
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", url);
+        xhr.setRequestHeader("Content-type", "application/json");
+        xhr.onload = function() {
+            cb(xhr.responseText);
+        };
+        xhr.send(JSON.stringify(data));
+    }
+
+</script>
+</body>
+</html>

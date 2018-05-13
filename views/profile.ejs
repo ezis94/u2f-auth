@@ -41,6 +41,11 @@
                 <br>
                 <%if (user.local.ROLE=="owner") {%>
                 <span ><a href="/acc_settings">Non-owner settings</a></span>
+                <% } %><%if (user.local.ROLE=="non_owner") {%>
+<h3>speed limit : <%=user.local.limit%></h3>
+                <h3>Trunk opening : <%=user.local.trunk%></h3><% } %>
+                <%if (user.local.ROLE=="admin") {%>
+                <span ><a href="/admin_settings">Admin settings</a></span>
                 <% } %>
                 <div class="jumbotron">
                     <% if (user.local.email != null) { %>

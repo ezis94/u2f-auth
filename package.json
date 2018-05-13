@@ -31,6 +31,7 @@
     "passport-spotify": "^1.0.0",
     "passport-twitter": "^1.0.3",
     "passport-u2f": "^0.1.0",
+    "randomstring": "^1.1.5",
     "rbac": "^4.0.2",
     "refresh-token": "^1.0.0",
     "request": "^2.85.0",

@@ -4,6 +4,7 @@ var router = express.Router();
 var u2f = require("u2f");
 var https = require("https");
 const AccessControl = require('accesscontrol');
+var randomstring = require("randomstring");
 
 var request = require('request'); // "Request" library
 var GoogleTokenProvider = require('refresh-token').GoogleTokenProvider;
@@ -36,6 +37,7 @@ ac.grant('maintenance')
 .grant('owner')                    // define new or modify existing role. also takes an array.
     .extend('non_owner')                 // inherit role capabilities. also takes an array
     .createAny('non_owner')
+    .createAny('maintenance')
      .readAny('non_owner_logs')
     .readOwn('logs')
     .readAny('non_owner_permissions')
@@ -43,6 +45,7 @@ ac.grant('maintenance')
     .deleteAny('non_owner')
 .grant('admin')                   // switch to another role without breaking the chain
     .createAny('non_owner')
+    .createAny('maintenance')
     .createAny('owner')// inherit role capabilities. also takes an array
     .readOwn('web')
     .updateAny('role')  // explicitly defined attributes
@@ -79,14 +82,33 @@ router.get("/acc_settings", function(req, res, next) {
     var permission = ac.can(req.user.local.ROLE).readAny('non_owner_permissions');
     if (permission.granted) {
         process.nextTick(function () {
-            User1.find({"local.ROLE": "non_owner"}, function (err, users) {
-                if (err) return done(err);
-                if (!users)
-                    return done(null, false, req.flash("loginMessage", "No user found."));
+            User1.find({"local.ROLE": "non_owner","local.name":req.user.local.name}, function (err, users) {
+                if (err)        res.send(err);
+
+
                 else {
 
                     console.log(JSON.stringify(users));
                     res.render("acc_settings.ejs", {user: req.user,users:users});
+
+                }
+            });
+        });
+    }
+    else res.status(403).end();
+});
+router.get("/admin_settings", function(req, res, next) {
+    var permission = ac.can(req.user.local.ROLE).updateAny('role');
+    if (permission.granted) {
+        process.nextTick(function () {
+            User1.find({"local.ROLE": {$ne : "admin"},"local.name":req.user.local.name}, function (err, users) {
+                if (err)         res.send(err);
+
+
+                else {
+
+                    console.log(JSON.stringify(users));
+                    res.render("admin_settings.ejs", {user: req.user,users:users});
 
                 }
             });
@@ -114,6 +136,9 @@ router.get("/loginu2fcar", function(req, res, next) {
 
 router.get("/signup", function(req, res) {
   res.render("signup.ejs", { message: req.flash("signupMessage") });
+});
+router.get("/signupcar", function(req, res) {
+    res.render("signupcar.ejs", { message: req.flash("signupMessage") });
 });
 
 router.get("/profile", isLoggedIn, function(req, res) {
@@ -312,6 +337,14 @@ router.post(
     failureFlash: true
   })
 );
+router.post(
+    "/signupcar",
+    passport.authenticate("local-signupcar", {
+        successRedirect: "/",
+        failureRedirect: "/signupcar",
+        failureFlash: true
+    })
+);
 
 router.post(
   "/login",
@@ -321,7 +354,102 @@ router.post(
     failureFlash: true
   })
 );
+router.post(
 
+    "/changerole", function(req, res) {
+        var permission = ac.can(req.user.local.ROLE).updateAny('role');
+        if (permission.granted){
+            process.nextTick(function () {
+                User1.findOne({"local.email": req.body.id}, function (err, user) {
+                    if (err) return res.send(err);
+                    else {
+                        user.local.ROLE=req.body.role;
+                        user.save(function (err) {
+                            if (err) throw err;
+                            res.send(JSON.stringify({stat: true}));
+                        });
+                    }
+                });
+            });
+        }
+    });
+router.post(
+
+    "/changelimit", function(req, res) {
+        var permission = ac.can(req.user.local.ROLE).updateAny('non_owner_permissions');  // explicitly defined attributes
+
+        if (permission.granted){
+            process.nextTick(function () {
+                User1.findOne({"local.email": req.body.id}, function (err, user) {
+                    if (err) return res.send(err);
+                    else {
+                        user.local.limit=req.body.limit;
+                        user.save(function (err) {
+                            if (err) throw err;
+                            res.send(JSON.stringify({stat: true}));
+                        });
+                    }
+                });
+            });
+        }
+    });
+router.post(
+
+    "/changetrunk", function(req, res) {
+        var permission = ac.can(req.user.local.ROLE).updateAny('non_owner_permissions');  // explicitly defined attributes
+
+        if (permission.granted){
+            process.nextTick(function () {
+                User1.findOne({"local.email": req.body.id}, function (err, user) {
+                    if (err) return res.send(err);
+                    else {
+                        user.local.trunk=req.body.trunk;
+                        user.save(function (err) {
+                            if (err) throw err;
+                            res.send(JSON.stringify({stat: true}));
+                        });
+                    }
+                });
+            });
+        }
+    });
+router.post(
+    "/createuser", function(req, res) {
+            process.nextTick(function () {
+                Car.findOne({"local.email": req.user.local.name}, function (err, user) {
+                    if (err) return res.send(err);
+                    else {
+                        var key;
+                        switch (req.body.role) {
+                            case "createOwner":
+                                var permission = ac.can(req.user.local.ROLE).createAny('owner');
+                                if (permission.granted) {
+                                user.local.key_owner = randomstring.generate(32);
+                                key = user.local.key_owner;}
+                                break;
+                            case "createNon_Owner":
+                                var permission = ac.can(req.user.local.ROLE).createAny('non_owner');
+                                if (permission.granted) {
+                                user.local.key_non_owner = randomstring.generate(32);
+                                key = user.local.key_non_owner;}
+                                break;
+                            case "createMaintenance":
+                                var permission = ac.can(req.user.local.ROLE).createAny('maintenance');
+                                if (permission.granted) {
+                                user.local.key_maintenance = randomstring.generate(32);
+                                key = user.local.key_maintenance;}
+                                break;
+                        }
+                        console.log(user.local.key_owner);
+                        user.save(function (err) {
+                            if (err) throw err;
+                            res.send(JSON.stringify({key: key, stat: true}));
+                        });
+                    }
+                });
+            });
+
+    });
 router.post(
   "/temp", function(req, res) {
         console.log(JSON.stringify(req.user));

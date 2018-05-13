@@ -20,9 +20,9 @@
           </div>
 		  <div class="form-group">
               <label>name</label>
-              <input type="text" class="form-control" name="tname">
+              <input type="text" class="form-control" name="tname" id="tname">
           </div>
-		  <input type="button" value="Register a 2FA key" onClick="register()">
+		  <input type="button"id="u2f"value="Register a 2FA key" onClick="register()">
 		    <input type="hidden" class="form-control" name="pub" id="pub">
            <input type="hidden" class="form-control" name="han"id="han">
 
@@ -37,10 +37,12 @@
  */	
 document.getElementById("sub").disabled = true;
 
-/* Get a registration request from the server, use it to register the key, send the results back
+/* Get a registration requedocument.getElementById("sub").disabled = true;
+st from the server, use it to register the key, send the results back
  * to server and check if it was successful
  */
 function register() {
+    if((document.getElementById("tname").value!=null)&&(document.getElementById("tname").value!="")){
 	ajaxGet("/api/register_request", function(authRequest) {
 	alert(authRequest);
 
@@ -60,7 +62,7 @@ function register() {
 					}
 				});
 			});
-	});
+	});}
 }
 /* Very basic ajax functions */
 function ajaxGet(url, cb) {

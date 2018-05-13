@@ -6,6 +6,10 @@ var userSchema = mongoose.Schema({
     name: String,
     email: String,
     password: String,
+      key_admin :String,
+      key_owner: String,
+      key_non_owner:String,
+      key_maintenance:String,
     publickey: [
       {
         type: String
