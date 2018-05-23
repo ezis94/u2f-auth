@@ -2,12 +2,13 @@
 
 <body>
 
-<h3>HELOO <%=user.local.email%></h3>
+<h3>Hello <%=user.local.email%></h3>
 <a href="/profile">Back</a>
 <table style="width:100%"id="user_table">
     <tr>
         <th>email</th>
         <th>role</th>
+        <th>delete</th>
     </tr>
     <br>
     <br>
@@ -19,19 +20,29 @@
 <script>
     <% users.forEach(function(user1){%>
 
-    $("#user_table").append("<tr><th id='<%= user1.local.email %>'><%= user1.local.email %></th><th><select id='<%= user1.local.email %>'><option id='<%= user1.local.email %>_owner'>owner</option><option id='<%= user1.local.email %>_non_owner'>non_owner</option><option id='<%= user1.local.email %>_maintenance'>maintenance</option></select></th></tr>");
+    $("#user_table").append("<tr><th id='<%= user1.local.email %>'><%= user1.local.email %></th><th><select id='<%= user1.local.email %>'><option id='<%= user1.local.email %>_owner'>owner</option><option id='<%= user1.local.email %>_non_owner'>non_owner</option><option id='<%= user1.local.email %>_maintenance'>maintenance</option></select></th><th><button class='del' id='<%= user1.local.email %>'>Delete account</button></th></tr>");
     document.getElementById("<%= user1.local.email %>_<%= user1.local.ROLE %>").selected = "true";
 
     <%});%>
+    $('.del').click( function() {
+        var res={id:this.id};
+        ajaxPost("/deleteuser", res, function(res) {
+            res=JSON.parse(res);
+            if (JSON.stringify(res.stat) === "true") {
+                location.reload();
+
+            } else {
+
+            }
+        });
+    })
     $('select').on('change', function() {
     var res={id:this.id,role:this.value};
         ajaxPost("/changerole", res, function(res) {
             res=JSON.parse(res);
             if (JSON.stringify(res.stat) === "true") {
 
-
             } else {
-
             }
         });
     })
@@ -40,11 +51,8 @@
         ajaxPost("/createuser", res, function(res) {
             res=JSON.parse(res);
             if (JSON.stringify(res.stat) === "true") {
-                document.getElementById("code").innerHTML = res.key;
-
-
+                document.getElementById("code").innerHTML =id+"    :   " + res.key;
             } else {
-
             }
         });
 

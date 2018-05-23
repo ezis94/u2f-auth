@@ -19,7 +19,7 @@
             <input type="password" class="form-control" name="password" />
           </div>
 		  <div class="form-group">
-              <label>name</label>
+              <label>code</label>
               <input type="text" class="form-control" name="tname" id="tname">
           </div>
 		  <input type="button"id="u2f"value="Register a 2FA key" onClick="register()">
@@ -44,7 +44,7 @@ st from the server, use it to register the key, send the results back
 function register() {
     if((document.getElementById("tname").value!=null)&&(document.getElementById("tname").value!="")){
 	ajaxGet("/api/register_request", function(authRequest) {
-	alert(authRequest);
+	//alert(authRequest);
 
 			var req = JSON.parse(authRequest);
 			alert("Press your key");
@@ -52,7 +52,7 @@ function register() {
 				ajaxPost("/api/register", res, function(res) {
 					res=JSON.parse(res);
 					if (JSON.stringify(res.stat) === "true") {
-						alert("Successfully registered that key. You can now view student data."+ res.usr);
+						alert("Successfully registered that key."+ res.usr);
 						document.getElementById("pub").value = JSON.stringify(res.usr.publicKey);
 						document.getElementById("han").value = JSON.stringify(res.usr.keyHandle);
 						document.getElementById("sub").disabled = false;
@@ -69,7 +69,7 @@ function ajaxGet(url, cb) {
 	var xhr = new XMLHttpRequest();
 	xhr.open("GET", url);
 	xhr.onload = function() {
-			alert("url "+url+"  cb"+xhr.responseText);
+			//alert("url "+url+"  cb"+xhr.responseText);
 
 		cb(xhr.responseText);
 	};

@@ -2,13 +2,14 @@
 
 <body>
 
-<h3>HELOO <%=user.local.email%></h3>
+<h3>Hello <%=user.local.email%></h3>
 <a href="/profile">Back</a>
 <table style="width:100%"id="user_table">
     <tr>
         <th>email</th>
         <th>speed limit</th>
         <th>trunk</th>
+        <th>delete</th>
     </tr>
 <br>
     <br>
@@ -19,7 +20,7 @@
 <script>
     <% users.forEach(function(user1){%>
 
-    $("#user_table").append("<tr><th id='<%= user1.local.email %>'><%= user1.local.email %></th><th><select id='<%= user1.local.email %>'><option id='<%= user1.local.email %>_none'>none</option><option id='<%= user1.local.email %>_50'>50</option><option id='<%= user1.local.email %>_60'>60</option><option id='<%= user1.local.email %>_70'>70</option><option id='<%= user1.local.email %>_80'>80</option><option id='<%= user1.local.email %>_90'>90</option><option id='<%= user1.local.email %>_110'>110</option><option id='<%= user1.local.email %>_130'>130</option></select></th><th><label class='switch'><input id='<%= user1.local.email %>_trunk' type='checkbox' onchange='changeTrunk(this.checked,this.id)'><span class='slider round'></span></label></th></tr>");
+    $("#user_table").append("<tr><th id='<%= user1.local.email %>'><%= user1.local.email %></th><th><select id='<%= user1.local.email %>'><option id='<%= user1.local.email %>_none'>none</option><option id='<%= user1.local.email %>_50'>50</option><option id='<%= user1.local.email %>_60'>60</option><option id='<%= user1.local.email %>_70'>70</option><option id='<%= user1.local.email %>_80'>80</option><option id='<%= user1.local.email %>_90'>90</option><option id='<%= user1.local.email %>_110'>110</option><option id='<%= user1.local.email %>_130'>130</option></select></th><th><label class='switch'><input id='<%= user1.local.email %>_trunk' type='checkbox' onchange='changeTrunk(this.checked,this.id)'><span class='slider round'></span></label></th><th><button class='del' id='<%= user1.local.email %>'>Delete account</button></th></tr>");
     document.getElementById("<%= user1.local.email %>_<%= user1.local.limit %>").selected = "true";
     <% if (user1.local.trunk=="true") {%>
      document.getElementById("<%= user1.local.email %>_trunk").checked=true;
@@ -32,6 +33,18 @@
             res=JSON.parse(res);
             if (JSON.stringify(res.stat) === "true") {
 
+
+            } else {
+
+            }
+        });
+    })
+    $('.del').click( function() {
+        var res={id:this.id};
+        ajaxPost("/deleteuser", res, function(res) {
+            res=JSON.parse(res);
+            if (JSON.stringify(res.stat) === "true") {
+                location.reload();
 
             } else {
 
@@ -53,7 +66,7 @@
         ajaxPost("/createuser", res, function(res) {
             res=JSON.parse(res);
             if (JSON.stringify(res.stat) === "true") {
-                document.getElementById("code").innerHTML = res.key;
+                document.getElementById("code").innerHTML =id+"    :   " +res.key;
 
 
             } else {

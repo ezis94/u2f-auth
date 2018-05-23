@@ -26,31 +26,32 @@ var Sessions = {};
 //ROLE STUFF-----------------------------------------------------------------------------------------
 const ac = new AccessControl();
 ac.grant('maintenance')
-    .readOwn('car')
-.grant('non_owner')                    // define new or modify existing role. also takes an array.
-    .extend('maintenance')                 // inherit role capabilities. also takes an array
-    .readOwn('web')
-    .createOwn('acc_app')             // equivalent to .createOwn('video', ['*'])
-    .deleteOwn('acc_app')
-    .updateOwn('apps')
-    .readOwn('logs')
-.grant('owner')                    // define new or modify existing role. also takes an array.
-    .extend('non_owner')                 // inherit role capabilities. also takes an array
-    .createAny('non_owner')
-    .createAny('maintenance')
-     .readAny('non_owner_logs')
-    .readOwn('logs')
-    .readAny('non_owner_permissions')
-    .updateAny('non_owner_permissions')  // explicitly defined attributes
-    .deleteAny('non_owner')
-.grant('admin')                   // switch to another role without breaking the chain
-    .createAny('non_owner')
-    .createAny('maintenance')
-    .createAny('owner')// inherit role capabilities. also takes an array
-    .readOwn('web')
-    .updateAny('role')  // explicitly defined attributes
-    .deleteAny('non_owner')
-    .deleteAny('owner')
+    .readOwn('car') //access the car version of the application
+.grant('non_owner')
+    .extend('maintenance')    // inherit role capabilities from maintenance
+    .readOwn('web')     //access the web version of the application
+    .createOwn('acc_app')             // connect an application
+    .deleteOwn('acc_app')           //disconnect an application
+    .updateOwn('apps')              //enable/disable applications
+    .readOwn('logs')                //read own logs (not implemented)
+.grant('owner')
+    .extend('non_owner')                 // inherit role capabilities from non owner
+    .createAny('non_owner')             //create non owner accounts
+    .createAny('maintenance')       //create maintenance accounts
+    .deleteAny('maintenance')   //delete maintenance accounts
+    .readAny('non_owner_logs')  //read non owner logs(not implemented)
+    .readAny('non_owner_permissions')   //view non owner permissions
+    .updateAny('non_owner_permissions')  //change non owner permissions
+    .deleteAny('non_owner'              )//delete non owner accounts
+.grant('admin')
+    .createAny('non_owner')              //create non owner accounts
+    .createAny('maintenance')            //create maintenance accounts
+    .createAny('owner')              //create owner accounts
+    .readOwn('web')              //access the web version of the application
+    .updateAny('role')              // change account roles
+    .deleteAny('non_owner')         //delete non owner accounts
+    .deleteAny('maintenance')       //delete maintenance accounts
+    .deleteAny('owner');         //create owner accounts
 
 /*const permission = ac.can('user').createOwn('video');
 console.log(permission.granted);    // —> true
@@ -127,7 +128,6 @@ router.get("/loginbmw", function(req, res, next) {
   res.render("loginbmw.ejs", { message: req.flash("loginMessage") });
 });
 router.get("/loginu2fcar", function(req, res, next) {
-  console.log("fsfdgasfdfdhsgdfhj    " + req.user);
   res.render("loginu2fcar.ejs", {
     message: req.flash("loginMessage"),
     user: req.user
@@ -148,6 +148,9 @@ router.get("/profile", isLoggedIn, function(req, res) {
         var date = new Date().getTime();
 
         var user1 = req.user;
+        var permission = ac.can(req.user.local.ROLE).createOwn('acc_app');
+        if (permission.granted) {
+
         if (req.user.spotify.expires <= date) {
             console.log(date);
             var authOptions = {
@@ -159,7 +162,6 @@ router.get("/profile", isLoggedIn, function(req, res) {
                 },
                 json: true
             };
-
             request.post(authOptions, function (error, response, body) {
                 if (!error && response.statusCode === 200) {
                     var access_token = body.access_token;
@@ -169,7 +171,7 @@ router.get("/profile", isLoggedIn, function(req, res) {
                         User1.findOne({"local.email": user1.local.email}, function (err, user) {
                             if (err) return done(err);
                             if (!user)
-                                return done(null, false, req.flash("loginMessage", "No user found."));
+                                return done(null, false, req.flash("loginMessage", "No user found1."));
                             else {
 
                                 user.spotify.access = access_token;
@@ -178,8 +180,6 @@ router.get("/profile", isLoggedIn, function(req, res) {
                                 var t = parseInt(expire_in, 10) * 1000;
                                 console.log(t);
                                 user.spotify.expires = date + t;
-
-
                                 user.save(function (err) {
                                     if (err) throw err;
                                 });
@@ -188,7 +188,9 @@ router.get("/profile", isLoggedIn, function(req, res) {
                     });
                 }
             });
-        }
+        }}
+        var permission = ac.can(req.user.local.ROLE).createOwn('acc_app');
+        if (permission.granted) {
         if (req.user.google.expires <= date) {
             var tokenProvider = new GoogleTokenProvider({
                 refresh_token: req.user.google.refresh,
@@ -203,13 +205,13 @@ router.get("/profile", isLoggedIn, function(req, res) {
                     User1.findOne({"local.email": user1.local.email}, function (err, user) {
                         if (err) return done(err);
                         if (!user)
-                            return done(null, false, req.flash("loginMessage", "No user found."));
+                            return done(null, false, req.flash("loginMessage", "No user found2."));
                         else {
 
                             user.google.access = token;
                             var date = new Date().getTime();
 
-                            user.spotify.expires = date + 3600000;
+                            user.google.expires = date + 3600000;
 
 
                             user.save(function (err) {
@@ -219,7 +221,7 @@ router.get("/profile", isLoggedIn, function(req, res) {
                     });
                 });
             });
-        }
+        }}
         res.render("profile.ejs", {user: req.user});
     }
     else res.status(403).end();
@@ -231,6 +233,8 @@ router.get("/profile_car", isLoggedIn, function(req, res) {
     var  date=new Date().getTime();
 console.log(date);
     var user1=req.user;
+        var permission1 = ac.can(req.user.local.ROLE).createOwn('acc_app');
+        if (permission1.granted) {
     if (req.user.spotify.expires<=date){
         console.log(date);
         var authOptions = {
@@ -252,7 +256,7 @@ console.log(date);
                     User1.findOne({ "local.email": user1.local.email }, function(err, user) {
                         if (err) return done(err);
                         if (!user)
-                            return done(null, false, req.flash("loginMessage", "No user found."));
+                            return done(null, false, req.flash("loginMessage", "No user found1."));
                         else {
 
                             user.spotify.access=access_token;
@@ -271,9 +275,10 @@ console.log(date);
                 });
             }
         });
-    }
+    }}
+        var permission2 = ac.can(req.user.local.ROLE).createOwn('acc_app');
+        if (permission2.granted) {
      if (req.user.google.expires<=date){
-        console.log("hleos");
         var tokenProvider = new GoogleTokenProvider({
             refresh_token: req.user.google.refresh,
             client_id:     '897949743059-1ghfq0eo7eot68goq0hqbjl33eabvicd.apps.googleusercontent.com',
@@ -286,7 +291,7 @@ console.log (JSON.stringify(token));
                 User1.findOne({ "local.email": user1.local.email }, function(err, user) {
                     if (err) return done(err);
                     if (!user)
-                        return done(null, false, req.flash("loginMessage", "No user found."));
+                        return done(null, false, req.flash("loginMessage", "No user found2."));
                     else {
 
                         user.google.token=token;
@@ -301,7 +306,7 @@ console.log (JSON.stringify(token));
                     }
                 });
             });        });
-    }
+    }}
     res.render("profile_car.ejs", { user: req.user });
     }
     else res.status(403).end();
@@ -354,6 +359,43 @@ router.post(
     failureFlash: true
   })
 );
+router.post(
+
+    "/deleteuser", function(req, res) {
+
+            process.nextTick(function () {
+                User1.findOne({"local.email": req.body.id}, function (err, user) {
+                    if (err) return res.send(err);
+                    else {
+
+                        var permission = ac.can(req.user.local.ROLE).deleteAny(user.local.ROLE);
+                        if (permission.granted){
+
+                            user.local.ROLE=req.body.role;
+                            var handle=user.local.handle;
+                            console.log(handle);
+
+                            Car.findOne({"local.email": user.local.name}, function (err, user1) {
+                                var index = user1.local.handle.indexOf(handle);
+                                if (index > -1) {
+                                    user1.local.handle.splice(index, 1);
+                                    console.log(user1.local.handle);
+                                    user1.local.publickey.splice(index, 1);
+                                }
+                                user1.save(function (err) {
+                                    if (err) throw err;
+                                    User1.remove({"local.email": req.body.id}, function (err, user){ });
+                                    res.send(JSON.stringify({stat: true}));
+                                });
+                             });
+
+
+                        }
+                    }
+                });
+            });
+
+    });
 router.post(
 
     "/changerole", function(req, res) {
@@ -453,7 +495,6 @@ router.post(
 router.post(
   "/temp", function(req, res) {
         console.log(JSON.stringify(req.user));
-        console.log("dsadfasfdfafadf" + JSON.stringify(req.body));
 
         process.nextTick(function() {
             User1.findOne({ "local.email": req.user.local.email }, function(err, user) {
@@ -461,7 +502,6 @@ router.post(
                 if (!user)
                     return done(null, false, req.flash("loginMessage", "No user found."));
                 else {
-                    console.log("OOOOOOOOOOO" + JSON.stringify("user.local"));
                     user.car.heating.right=req.body.temp2;
                     user.car.heating.left=req.body.temp1;
                     user.car.ventilation.left=req.body.temp3;
@@ -551,29 +591,7 @@ router.get("/api/sign_request", function(req, res) {
 });
 
 
-router.post("/addkey", function(req, res) {
-  console.log(JSON.stringify(req.user));
-  console.log("dsadfasfdfafadf" + JSON.stringify(req.body));
 
-  process.nextTick(function() {
-    User1.findOne({ "local.email": req.user.local.email }, function(err, user) {
-      if (err) return done(err);
-      if (!user)
-        return done(null, false, req.flash("loginMessage", "No user found."));
-      else {
-        console.log("OOOOOOOOOOO" + JSON.stringify("user.local"));
-        user.local.publickey = user.local.publickey.concat([req.body.pub]);
-        user.local.handle = user.local.handle.concat([req.body.han]);
-        console.log(JSON.stringify(user));
-
-        user.save(function(err) {
-          if (err) throw err;
-          return res.redirect(req.get("referer"));
-        });
-      }
-    });
-  });
-});
 // google ---------------------------------
 
 // send to google to do the authentication
@@ -589,6 +607,23 @@ router.get('/connect/google/callback',
 router.get('/unlink/google', isLoggedIn, function(req, res) {
     var user          = req.user;
     user.google.token = undefined;
+    user.google.refresh = undefined;
+    user.google.email = undefined;
+    user.google.expires = undefined;
+    user.google.id = undefined;
+    user.google.name = undefined;
+
+    user.save(function(err) {
+        res.redirect('/profile');
+    });
+});
+router.get('/unlink/spotify', isLoggedIn, function(req, res) {
+    var user          = req.user;
+    user.spotify.access = undefined;
+    user.spotify.refresh = undefined;
+    user.spotify.expires = undefined;
+    user.spotify.spotifyId = undefined;
+
     user.save(function(err) {
         res.redirect('/profile');
     });
@@ -623,7 +658,6 @@ router.post("/api/register", function(req, res) {
 });
 
 router.post("/api/authenticatecar", function(req, res) {
-  console.log("MAAAAAAA" + JSON.stringify(req.body));
   tempo_handle = req.body.keyHandle;
   var checkRes;
   var j = req.user.local.handle.indexOf(JSON.stringify(req.body.keyHandle));
@@ -641,7 +675,6 @@ router.post("/api/authenticatecar", function(req, res) {
   }
 });
 router.post("/api/authenticate", function(req, res) {
-  console.log("MAAAAAAA" + JSON.stringify(req.body));
   tempo_handle = req.body.keyHandle;
   var checkRes;
   var j = req.user.local.handle.indexOf(JSON.stringify(req.body.keyHandle));
@@ -684,7 +717,7 @@ router.post(
                         }, function(err, numberAffected, rawResponse) {
                             console.log(JSON.stringify(user));
 
-                            res.send(JSON.stringify({ stat: true}));
+                            res.send(JSON.stringify({ stat: true,new:false}));
                         });
 
                     } else {
@@ -694,7 +727,7 @@ router.post(
                             if (err) throw err;
                             console.log(JSON.stringify(user));
 
-                            res.send(JSON.stringify({ stat: true}));                    });
+                            res.send(JSON.stringify({ stat: true,new:true}));                    });
                     }
 
 

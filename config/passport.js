@@ -227,7 +227,6 @@ module.exports = function(passport) {
                                   if (user1) {
                                       role="non_owner";
                                       car_id=user1.local.email;
-                                      console.log("nononercar");
                                       User.findOne({ "local.email": email }, function(err, user) {
                                           if (err) return done(err);
                                           if (user) {
@@ -461,7 +460,6 @@ module.exports = function(passport) {
                 req.flash("loginMessage", "No user found.")
               );
             else {
-              console.log("OOOOOOOOOOO" + JSON.stringify("user.local"));
               user.local.publickey.push(publickey);
               user.local.handle.push(handle);
 
@@ -547,7 +545,6 @@ module.exports = function(passport) {
         passReqToCallback: true
       },
       function(req, email, password, tname, publickey, handle, done) {
-        console.log("aaaaaaaaassss" + handle);
         User.findOne({ "local.handle": handle }, function(err, user) {
           if (err) return done(err);
           if (!user)
@@ -556,7 +553,6 @@ module.exports = function(passport) {
               false,
               req.flash("loginMessage", "No user found.")
             );
-          // console.log("kappa");
           return done(null, user);
         });
       }
@@ -571,8 +567,6 @@ module.exports = function(passport) {
         profileFields: ["id", "email", "first_name", "last_name","location","birthday","hometown","likes","tagged_places"]
       },
       function(token, refreshToken, profile, done) {
-          console.log("locaaaation"+JSON.stringify(JSON.parse(profile._raw).tagged_places.data[0]));
-          console.log("locaaaation"+profile._raw);
         process.nextTick(function() {
           User.findOne({ "facebook.id": profile.id }, function(err, user) {
             if (err) return done(err);
@@ -669,7 +663,6 @@ module.exports = function(passport) {
                             // if there is a user id already but no token (user was linked at one point and then removed)
                             if (!user.google.token) {
                                 user.google.token = token;
-                                console.log("dsadafaf"+token);
                                 user.google.refresh = refreshToken;
                                 var  date=new Date().getTime();
                                 user.google.expires=date+3600;
@@ -709,8 +702,7 @@ module.exports = function(passport) {
                     user.google.id    = profile.id;
                     user.google.token = token;
                     user.google.refresh = refreshToken;
-                    console.log("dsadafaf"+token);
-                    console.log("dsadafaf"+refreshToken);
+
 
                     var  date=new Date().getTime();
                     user.google.expires=date+3600;

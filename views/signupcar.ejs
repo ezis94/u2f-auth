@@ -43,7 +43,7 @@
                 var xhr = new XMLHttpRequest();
                 xhr.open("GET", url);
                 xhr.onload = function() {
-                    alert("url "+url+"  cb"+xhr.responseText);
+                    //alert("url "+url+"  cb"+xhr.responseText);
 
                     cb(xhr.responseText);
                 };
