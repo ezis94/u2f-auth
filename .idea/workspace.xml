@@ -3,17 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="1065f76b-30d7-4454-b71a-3f3d1f28afe6" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/config/passport.js" afterPath="$PROJECT_DIR$/config/passport.js" />
-      <change beforePath="$PROJECT_DIR$/routes/index.js" afterPath="$PROJECT_DIR$/routes/index.js" />
-      <change beforePath="$PROJECT_DIR$/views/acc_settings.ejs" afterPath="$PROJECT_DIR$/views/acc_settings.ejs" />
-      <change beforePath="$PROJECT_DIR$/views/admin_settings.ejs" afterPath="$PROJECT_DIR$/views/admin_settings.ejs" />
-      <change beforePath="$PROJECT_DIR$/views/app_settings.ejs" afterPath="$PROJECT_DIR$/views/app_settings.ejs" />
-      <change beforePath="$PROJECT_DIR$/views/loginu2f.ejs" afterPath="$PROJECT_DIR$/views/loginu2f.ejs" />
-      <change beforePath="$PROJECT_DIR$/views/loginu2fcar.ejs" afterPath="$PROJECT_DIR$/views/loginu2fcar.ejs" />
       <change beforePath="$PROJECT_DIR$/views/profile.ejs" afterPath="$PROJECT_DIR$/views/profile.ejs" />
-      <change beforePath="$PROJECT_DIR$/views/profile_car.ejs" afterPath="$PROJECT_DIR$/views/profile_car.ejs" />
-      <change beforePath="$PROJECT_DIR$/views/signup.ejs" afterPath="$PROJECT_DIR$/views/signup.ejs" />
-      <change beforePath="$PROJECT_DIR$/views/signupcar.ejs" afterPath="$PROJECT_DIR$/views/signupcar.ejs" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -30,7 +20,7 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="signupcar.ejs" pinned="false" current-in-tab="true">
+      <file leaf-file-name="signupcar.ejs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/views/signupcar.ejs">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="177">
@@ -100,11 +90,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="profile_car.ejs" pinned="false" current-in-tab="false">
+      <file leaf-file-name="profile_car.ejs" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/views/profile_car.ejs">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="177">
-              <caret line="627" column="15" lean-forward="false" selection-start-line="627" selection-start-column="10" selection-end-line="627" selection-end-column="15" />
+              <caret line="51" column="58" lean-forward="false" selection-start-line="51" selection-start-column="58" selection-end-line="51" selection-end-column="58" />
               <folding />
             </state>
           </provider>
@@ -124,7 +114,7 @@
         <entry file="file://$PROJECT_DIR$/views/profile.ejs">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="177">
-              <caret line="203" column="19" lean-forward="false" selection-start-line="203" selection-start-column="14" selection-end-line="203" selection-end-column="19" />
+              <caret line="43" column="50" lean-forward="false" selection-start-line="43" selection-start-column="47" selection-end-line="43" selection-end-column="50" />
               <folding />
             </state>
           </provider>
@@ -141,7 +131,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>saveloc</find>
       <find>admin_se</find>
       <find>temp</find>
       <find>changed</find>
@@ -171,6 +160,7 @@
       <find>spotify</find>
       <find>console</find>
       <find>alert</find>
+      <find>non</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -205,10 +195,10 @@
         <option value="$PROJECT_DIR$/config/passport.js" />
         <option value="$PROJECT_DIR$/views/loginu2f.ejs" />
         <option value="$PROJECT_DIR$/views/loginu2fcar.ejs" />
-        <option value="$PROJECT_DIR$/views/profile.ejs" />
         <option value="$PROJECT_DIR$/views/profile_car.ejs" />
         <option value="$PROJECT_DIR$/views/signup.ejs" />
         <option value="$PROJECT_DIR$/views/signupcar.ejs" />
+        <option value="$PROJECT_DIR$/views/profile.ejs" />
       </list>
     </option>
   </component>
@@ -357,7 +347,7 @@
       <workItem from="1526457180857" duration="2063000" />
       <workItem from="1526722199885" duration="397000" />
       <workItem from="1526829650608" duration="2074000" />
-      <workItem from="1527116152454" duration="672000" />
+      <workItem from="1527116152454" duration="1356000" />
     </task>
     <task id="LOCAL-00001" summary="First update">
       <created>1522833577821</created>
@@ -422,11 +412,18 @@
       <option name="project" value="LOCAL" />
       <updated>1526211504254</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="Done">
+      <created>1527116854381</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1527116854381</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="236338000" />
+    <option name="totallyTimeSpent" value="237022000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -532,7 +529,8 @@
     <MESSAGE value="Added google maps&#10;&#10;(not finished)" />
     <MESSAGE value="almost finished" />
     <MESSAGE value="done, no delete tho" />
-    <option name="LAST_COMMIT_MESSAGE" value="done, no delete tho" />
+    <MESSAGE value="Done" />
+    <option name="LAST_COMMIT_MESSAGE" value="Done" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -876,22 +874,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/views/profile.ejs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="177">
-          <caret line="203" column="19" lean-forward="false" selection-start-line="203" selection-start-column="14" selection-end-line="203" selection-end-column="19" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/views/profile_car.ejs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="177">
-          <caret line="627" column="15" lean-forward="false" selection-start-line="627" selection-start-column="10" selection-end-line="627" selection-end-column="15" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/views/signup.ejs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="177">
@@ -904,6 +886,22 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="177">
           <caret line="45" column="27" lean-forward="false" selection-start-line="45" selection-start-column="22" selection-end-line="45" selection-end-column="27" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/views/profile.ejs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="177">
+          <caret line="43" column="50" lean-forward="false" selection-start-line="43" selection-start-column="47" selection-end-line="43" selection-end-column="50" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/views/profile_car.ejs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="177">
+          <caret line="51" column="58" lean-forward="false" selection-start-line="51" selection-start-column="58" selection-end-line="51" selection-end-column="58" />
           <folding />
         </state>
       </provider>
