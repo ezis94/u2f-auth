@@ -128,7 +128,7 @@
 
           <!-- GOOGLE INFORMATION -->
           <input id="pac-input" class="controls" type="text" placeholder="Search Box">
-          <p>Or use one of 10 previous! or Find a new place!</p>
+          <p>Use one of your previous locations</p>
 
           <select id="end">
               <option value=""></option>
@@ -136,6 +136,8 @@
               <option value="<%=user.map.location[i]%>"><%=user.map.location[i]%></option>
               <% } %>
           </select>
+          <p>Or find a new one</p>
+
           <div id="map"></div>
 
           <script>
@@ -261,14 +263,16 @@
 
       <div id="spotify" class="tab-pane fade">
           <% if (user.spotify.enabled=="true") {%>
+          <h3>The Spotify playlist pool</h3>
           <div id="spotify_list"></div><br><br>
-          <div>
-              <button id="prev_spotify">Previous track</button>
-              <button id="toggle_spotify">Start/pause</button>
-              <button id="next_spotify">nextt track</button>
-              <div class="slidecontainer" style="position:block">
-                  <input type="range" min="1" max="100" value="50" id="myRange"style="">
-                  <p>Value: <span id="demo"></span></p>
+          <div style="border:2px solid black;width:350px">
+              <b style="display:block">Spotify controls</b>
+              <button id="prev_spotify"style=" display: inline-block;">Previous track</button>
+              <button id="toggle_spotify"style=" display: inline-block;">Start/pause</button>
+              <button id="next_spotify"style=" display: inline-block;">Next track</button>
+              <div class="slidecontainer" style="display: block;margin-left: auto;margin-right: auto;">
+                  <input type="range" min="1" max="100" value="50" id="myRange"style="display: block;margin-left: auto;margin-right: auto;">
+                  <p style="display: block;margin-left: auto;margin-right: auto;">Value: <span id="demo"></span></p>
               </div>
           </div>
 

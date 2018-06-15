@@ -15,10 +15,13 @@
             </div><%= user.local.email %>
             <div class="form-group">
             </div>
-            <input type="button" value="verify u2f" onClick="authenticate()">
+            <div id="key_wait" style="display:block" >
+                <h3 style="color:red">Waiting for U2F key to authenticate</h3>
+                <div class="loader"></div>
+
+            </div>
             <input type="hidden" class="form-control" name="pub" id="pub">
             <input type="hidden" class="form-control" name="han"id="han">
-            <input type="submit" class="form-control" value="Submit" id="sub" />
             <div class="form-group">
 
                 <input type="hidden" class="form-control" name="email"id="email" value="bmw" >
@@ -31,8 +34,9 @@
 
 
         <script>
-            //remove user!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+            $(document).ready(function(){
+                authenticate();
+            });
             /* Get an authentication request from the server,
              * sign it with the key, verify the results on the server
              */
@@ -43,7 +47,6 @@
                 ajaxGet("/api/sign_request", function(authRequest) {
                    // alert("this is  I   "+authRequest);
                     var req = JSON.parse(authRequest);
-                    alert("Press your key");
                    // alert(JSON.stringify(req[0].appId+"    hello"+req[0].challenge));
 
                     //need to work here!!!!
@@ -57,12 +60,10 @@
                                 alert(res.error);
                                 return;
                             } else {
-                                alert(JSON.stringify("Success"));
                                 //alert(JSON.stringify(res));
 
                                 document.getElementById("han").value=res.secretData;
-                                document.getElementById("sub").disabled = false;
-
+                                document.forms[0].submit();
                             }
                         });
                     });

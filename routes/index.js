@@ -554,7 +554,7 @@ router.get(
 );
 
 router.get('/auth/spotify',
-    passport.authenticate('spotify',{ scope: ["user-read-birthdate", "user-read-email", "user-read-private ","user-modify-playback-state", "playlist-read-private","streaming",""] }),
+    passport.authenticate('spotify',{ scope: ["user-read-birthdate", "user-read-email", "user-read-private ","user-modify-playback-state", "playlist-read-private","streaming","user-follow-read"] }),
     function(req, res){
         // The request will be redirected to spotify for authentication, so this
         // function will not be called.
