@@ -191,7 +191,6 @@
               ajaxPost("/saveloc", res, function(res) {
                   res=JSON.parse(res);
                   if (JSON.stringify(res.stat) === "true") {
-                    //  alert("changed");
                     if (JSON.stringify(res.new)=="true")
                       $( "#end" ).append( '<option value=' +address2+'>'+address2+'</option>' );
 
@@ -208,21 +207,7 @@
 
       var onChangeHandler = function() {
           address2=document.getElementById('end').value;
-          var res={};
-          res.locat=address2;
-          ajaxPost("/saveloc", res, function(res) {
-              res=JSON.parse(res);
-              if (JSON.stringify(res.stat) === "true") {
-                //  alert("changed");
 
-                  $( "#end" ).append( '<option value=' +address2+'>'+address2+'</option>' );
-
-
-
-              } else {
-                  alert(res.usr);
-              }
-          });
           calculateAndDisplayRoute(directionsService, directionsDisplay);
       };
       document.getElementById('end').addEventListener('change', onChangeHandler);
@@ -277,9 +262,16 @@
       <div id="spotify" class="tab-pane fade">
           <% if (user.spotify.enabled=="true") {%>
           <div id="spotify_list"></div><br><br>
-          <button id="prev_spotify">Previous track</button>
-          <button id="toggle_spotify">Start/pause</button>
-          <button id="next_spotify">nextt track</button>
+          <div>
+              <button id="prev_spotify">Previous track</button>
+              <button id="toggle_spotify">Start/pause</button>
+              <button id="next_spotify">nextt track</button>
+              <div class="slidecontainer" style="position:block">
+                  <input type="range" min="1" max="100" value="50" id="myRange"style="">
+                  <p>Value: <span id="demo"></span></p>
+              </div>
+          </div>
+
           <script src="https://sdk.scdn.co/spotify-player.js"></script>
           <script>
 
@@ -408,17 +400,12 @@
                   // Connect to the player!
                   player.connect();
               };
-          </script>
-
-          <div class="slidecontainer">
-              <input type="range" min="1" max="100" value="50" id="myRange">
-              <p>Value: <span id="demo"></span></p>
-          </div>
-
-
-          <script>
 
           </script>
+
+
+
+
           <%}%>
           <% if (user.spotify.enabled=="false") {%>
           <h3> Spotify not enabled</h3>

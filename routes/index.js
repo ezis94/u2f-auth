@@ -703,7 +703,8 @@ router.post(
                 else {
 
                     console.log(req.body.locat);
-                    var index=user.map.location.indexOf(req.body.locat)
+                    var index=user.map.location.indexOf(req.body.locat);
+                    console.log("very long string"+index);
                     if (index > -1) {
 
                          var nr = Number(user.map.density[index])+1;
