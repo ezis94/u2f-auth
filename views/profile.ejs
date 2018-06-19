@@ -56,7 +56,8 @@
                 </div>
                 <% } %>
 
-            </div> </div> </div>
+            </div> </div> </div><%if (user.local.ROLE!="admin") {%>
+
     <div id="venttemp" class="tab-pane fade">
         <h3>Temperature/ventilation</h3>
 
@@ -133,6 +134,7 @@
         </div>
 
     </div>
+    <% } %>
     <% if (user.map.enabled=="true") {%>
 
     <div id="gmaps" class="tab-pane fade">

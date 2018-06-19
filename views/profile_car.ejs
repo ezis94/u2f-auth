@@ -33,6 +33,9 @@
               <div class="text-center">
                   <h1 class=" fa fa-user"> Profile</h1><br>
                   <span><strong>user id</strong>: <%= user._id ? user._id : '' %></span><br>
+                  <%if (user.local.ROLE=="non_owner") {%>
+                  <h3>speed limit : <%=user.local.limit%></h3>
+                  <h3>Trunk opening : <%=user.local.trunk%></h3><% } %>
                   <span class="fa fa-sign-out"><a href="/"> Sign out</a></span>
                   <hr>
 

@@ -75,8 +75,8 @@ app.use(function(err, req, res, next) {
 });
 
 var credentials = {
-  key: fs.readFileSync("./bin/insecure-key.pem"),
-  cert: fs.readFileSync("./bin/insecure-certificate.pem")
+  key: fs.readFileSync("./insecure-key.pem"),
+  cert: fs.readFileSync("./insecure-certificate.pem")
 };
 var httpsServer = https.createServer(credentials, app);
 httpsServer.listen(4433);

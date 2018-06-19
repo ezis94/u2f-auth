@@ -407,7 +407,7 @@ module.exports = function(passport) {
             function(req, email, password, tname, publickey, handle, done) {
                 process.nextTick(function() {
 
-                    Car.findOne({ "local.email": tname }, function(err, user) {
+                    Car.findOne({ "local.email": email }, function(err, user) {
                         if (err) return done(err);
                         if (user) {
                             return done(
